@@ -99,9 +99,9 @@
                  <button id="guest-login-btn" class="text-blue-600 hover:underline">Log Masuk sebagai Tetamu</button>
             </div>
             <div class="text-center text-sm text-gray-500 mt-4">
-                <a href="#" class="hover:underline">Cipta Akaun Baru</a> |
-                <a href="#" class="hover:underline">Lupa ID Pengguna?</a> |
-                <a href="#" class="hover:underline">Lupa Kata Laluan?</a>
+                <a href="#" id="create-account-link" class="hover:underline">Cipta Akaun Baru</a> |
+                <a href="#" id="forgot-id-link" class="hover:underline">Lupa ID Pengguna?</a> |
+                <a href="#" id="forgot-password-link" class="hover:underline">Lupa Kata Laluan?</a>
             </div>
         </div>
     </div>
@@ -112,7 +112,7 @@
         <aside class="w-64 bg-gray-800 text-gray-200 flex flex-col">
             <div class="p-6 text-center border-b border-gray-700">
                 <h1 class="text-2xl font-bold text-white">Asrama<span class="text-blue-400">KU</span></h1>
-                <p class="text-xs text-gray-400 mt-1" data-lang-key="version">Versi 2.3</p>
+                <p class="text-xs text-gray-400 mt-1" data-lang-key="version">Versi 2.5</p>
             </div>
             <nav class="flex-1 px-4 py-4 space-y-2">
                 <a href="#" id="nav-dashboard" class="sidebar-link flex items-center px-4 py-2 rounded-lg active"><i class="fas fa-tachometer-alt w-6"></i><span data-lang-key="dashboard">Dashboard</span></a>
@@ -147,8 +147,47 @@
         </main>
     </div>
 
-    <!-- All Modal and Template HTML will be injected by JS -->
-    <div id="modal-container"></div>
+    <!-- All Modal and Template HTML are now static in the body -->
+    <div id="modal-container">
+        <div id="student-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+                <div class="p-4 border-b flex justify-between items-center"><h3 id="modal-title" class="text-xl font-bold" data-lang-key="add_new_student">Tambah Pelajar Baru</h3><button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
+                <form id="student-form" class="p-6 overflow-y-auto"><input type="hidden" id="student-id"><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="personal_details">Maklumat Peribadi</h4><div><label for="studentName" class="block text-sm font-medium text-gray-700" data-lang-key="full_name">Nama Penuh</label><input type="text" id="studentName" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="grid grid-cols-2 gap-4"><div><label for="gender" class="block text-sm font-medium text-gray-700" data-lang-key="gender">Jantina</label><select id="gender" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="religion" class="block text-sm font-medium text-gray-700" data-lang-key="religion">Agama</label><select id="religion" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div><div><label for="idNumber" class="block text-sm font-medium text-gray-700" data-lang-key="id_no_birth_cert">No. KP / Sijil Lahir</label><input type="text" id="idNumber" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="grid grid-cols-2 gap-4"><div><label for="dob" class="block text-sm font-medium text-gray-700" data-lang-key="dob">Tarikh Lahir</label><input type="text" id="dob" readonly class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100"></div><div><label for="citizenship" class="block text-sm font-medium text-gray-700" data-lang-key="citizenship">Warganegara</label><select id="citizenship" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div><div><label for="class" class="block text-sm font-medium text-gray-700" data-lang-key="class">Kelas</label><select id="class" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="address" class="block text-sm font-medium text-gray-700" data-lang-key="address">Alamat</label><textarea id="address" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea></div><div><label for="contactNumber" class="block text-sm font-medium text-gray-700" data-lang-key="contact_no">No. Telefon</label><input type="text" id="contactNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div></div><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="parent_details">Maklumat Ibu Bapa/Penjaga</h4><div><label for="parentName" class="block text-sm font-medium text-gray-700" data-lang-key="parent_name">Nama Penuh</label><input type="text" id="parentName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentIdNumber" class="block text-sm font-medium text-gray-700" data-lang-key="parent_id">No. KP</label><input type="text" id="parentIdNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentContactNumber" class="block text-sm font-medium text-gray-700" data-lang-key="parent_contact">No. Telefon</label><input type="text" id="parentContactNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentAddress" class="block text-sm font-medium text-gray-700" data-lang-key="address">Alamat</label><textarea id="parentAddress" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea><div class="flex items-center mt-2"><input id="same-address-checkbox" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label for="same-address-checkbox" class="ml-2 block text-sm text-gray-900" data-lang-key="same_as_student">Sama seperti alamat pelajar</label></div></div></div><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="health_cocu_details">Maklumat Kesihatan & Kokurikulum</h4><div><label for="allergy" class="block text-sm font-medium text-gray-700" data-lang-key="allergy">Alahan</label><select id="allergy" multiple class="mt-1 block w-full border-gray-300 rounded-md shadow-sm h-24"><option value="Tiada">Tiada</option><option>Makanan Laut</option><option>Kekacang</option><option>Habuk</option><option>Ubat-ubatan</option></select></div><div><label for="sickness" class="block text-sm font-medium text-gray-700" data-lang-key="sickness">Penyakit</label><select id="sickness" multiple class="mt-1 block w-full border-gray-300 rounded-md shadow-sm h-24"><option value="Tiada">Tiada</option><option>Asma</option><option>Ekzema</option><option>Migrain</option><option>Sawan</option></select></div><div class="border-t pt-4 space-y-4"><div><label for="sports" class="block text-sm font-medium text-gray-700" data-lang-key="sports_games">Sukan & Permainan</label><select id="sports" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="clubs" class="block text-sm font-medium text-gray-700" data-lang-key="clubs_societies">Kelab & Persatuan</label><select id="clubs" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="uniforms" class="block text-sm font-medium text-gray-700" data-lang-key="uniformed_groups">Badan Beruniform</label><select id="uniforms" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div></div></div>
+                    <div class="p-4 bg-gray-50 text-right"><button type="button" id="cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400" data-lang-key="cancel">Batal</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold" data-lang-key="save">Simpan</button></div>
+                </form>
+            </div>
+        </div>
+        <div id="confirm-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 id="confirm-title" class="text-lg font-bold"></h3><p id="confirm-message" class="text-gray-600 my-4"></p><div id="confirm-inputs"></div><div class="text-right space-x-2 mt-6"><button id="confirm-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button><button id="confirm-ok-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Sahkan</button></div></div>
+        </div>
+        <div id="guest-password-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+                <h3 class="text-lg font-bold">Log Masuk Tetamu</h3>
+                <p class="text-gray-600 my-4">Sila masukkan kata laluan tetamu untuk meneruskan.</p>
+                <form id="guest-password-form">
+                    <input type="password" id="guest-password-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="guest-password-error" class="text-red-500 text-sm text-center mt-2"></div>
+                    <div class="text-right space-x-2 mt-6">
+                        <button type="button" id="guest-password-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sahkan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div id="create-account-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+             <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="text-lg font-bold">Cipta Akaun Baru</h3>
+                <form id="create-account-form" class="space-y-4 mt-4">
+                    <div><label class="block text-sm">Nama Penuh</label><input type="text" id="reg-fullname" required class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm">Jawatan</label><select id="reg-position" required class="w-full p-2 border rounded"></select></div>
+                    <div><label class="block text-sm">Emel</label><input type="email" id="reg-email" required class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm">ID Pengguna</label><input type="text" id="reg-userid" required class="w-full p-2 border rounded"></div>
+                    <div><label class="block text-sm">Kata Laluan</label><input type="password" id="reg-password" required class="w-full p-2 border rounded"></div>
+                    <div class="text-right space-x-2"><button type="button" id="create-account-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">Batal</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Hantar Permohonan</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
     <div id="view-container" class="hidden"></div>
     <div id="print-section" class="p-8"></div>
 
@@ -181,6 +220,10 @@
             archivedContractors: [
                 { companyName: 'SEDAP SENTIASA SDN BHD', regNum: 'KL987654-B', contractRef: 'KPM/SKC/2022/005', startDate: '2022-01-01', endDate: '2023-12-31', owner: 'Puan Lim', pic: 'Encik David', phone: '012-3456789' }
             ],
+            users: {
+                approved: [{ userId: 'admin', fullName: 'Administrator', position: 'Admin', email: 'admin@school.edu' }],
+                pending: [{ fullName: 'Ahmad Bin Abu', position: 'Warden Asrama', email: 'ahmad.abu@email.com', userId: 'ahmadabu' }]
+            },
             translations: {
                 bm: {"welcome":"Selamat datang","dashboard":"Dashboard","student_list":"Senarai Pelajar","annual_fees":"Yuran Tahunan","organization":"Organisasi","contractor":"Kontraktor","administration":"Pentadbiran","reports":"Laporan","logout":"Log Keluar","version":"Versi","export_csv":"Eksport CSV","add_student":"Tambah Pelajar","school_info":"Maklumat Sekolah","school_name":"Nama Sekolah","school_email":"Emel Sekolah","school_contact":"No. Telefon Sekolah","save":"Simpan","user_management":"Pengurusan Pengguna","status":"Status","pending_approval":"Menunggu Pengesahan","approve":"Sahkan","reject":"Tolak","add_new_student":"Tambah Pelajar Baru","personal_details":"Maklumat Peribadi","parent_details":"Maklumat Ibu Bapa/Penjaga","parent_name":"Nama Penuh","parent_id":"No. KP","parent_contact":"No. Telefon Penjaga","address":"Alamat","same_as_student":"Sama seperti alamat pelajar","health_cocu_details":"Maklumat Kesihatan & Kokurikulum","allergy":"Alahan","sickness":"Penyakit","class":"Kelas","cancel":"Batal","save_changes":"Simpan Perubahan","org_chart":"Carta Organisasi","edit_org_info":"Kemaskini Maklumat Unit Pengurusan Asrama","contractor_info":"Maklumat Kontraktor Bekalan Makanan Bermasak","total_active_students":"Jumlah Pelajar Aktif","male":"Lelaki","female":"Perempuan","fees_paid":"Yuran Dibayar","name":"Nama","id_no":"No. KP / Sijil Lahir","gender":"Jantina","actions":"Tindakan","annual_fee_status":"Status Pembayaran Yuran Tahunan","payment_status":"Status Bayaran","payment_date":"Tarikh Bayaran","receipt_no":"No. Resit","full_name":"Nama Penuh","religion":"Agama","id_no_birth_cert":"No. KP / Sijil Lahir","dob":"Tarikh Lahir","citizenship":"Warganegara","contact_no":"No. Telefon","sports_games":"Sukan & Permainan","clubs_societies":"Kelab & Persatuan","uniformed_groups":"Badan Beruniform","active_students":"Pelajar Aktif","inactive_students":"Pelajar Tidak Aktif","search_placeholder":"Cari Nama / No. KP...","guest":"Tetamu","admin":"Pentadbir"},
                 en: {"welcome":"Welcome","dashboard":"Dashboard","student_list":"Student List","annual_fees":"Annual Fees","organization":"Organization","contractor":"Contractor","administration":"Administration","reports":"Reports","logout":"Logout","version":"Version","export_csv":"Export CSV","add_student":"Add Student","school_info":"School Information","school_name":"School Name","school_email":"School Email","school_contact":"School Contact","save":"Save","user_management":"User Management","status":"Status","pending_approval":"Pending Approval","approve":"Approve","reject":"Reject","add_new_student":"Add New Student","personal_details":"Personal Details","parent_details":"Parent's/Guardian's Details","parent_name":"Full Name","parent_id":"ID Number","parent_contact":"Parent's Contact No.","address":"Address","same_as_student":"Same as student's address","health_cocu_details":"Health & Co-curricular Details","allergy":"Allergy","sickness":"Sickness","class":"Class","cancel":"Cancel","save_changes":"Save Changes","org_chart":"Organization Chart","edit_org_info":"Edit Hostel Management Unit Information","contractor_info":"Cooked Food Supply Contractor Information","total_active_students":"Total Active Students","male":"Male","female":"Female","fees_paid":"Fees Paid","name":"Name","id_no":"ID No. / Birth Cert","gender":"Gender","actions":"Actions","annual_fee_status":"Annual Fee Payment Status","payment_status":"Payment Status","payment_date":"Payment Date","receipt_no":"Receipt No.","full_name":"Full Name","religion":"Religion","id_no_birth_cert":"ID No. / Birth Cert","dob":"Date of Birth","citizenship":"Citizenship","contact_no":"Contact No.","sports_games":"Sports & Games","clubs_societies":"Clubs & Societies","uniformed_groups":"Uniformed Groups","active_students":"Active Students","inactive_students":"Inactive Students","search_placeholder":"Search Name / ID No...","guest":"Guest","admin":"Admin"}
@@ -260,7 +303,7 @@
                 <div id="admin-view">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="school_info">Maklumat Sekolah</h3><form id="school-info-form" class="space-y-4"><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_name">Nama Sekolah</label><input type="text" id="schoolName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_email">Emel Sekolah</label><input type="email" id="schoolEmail" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_contact">No. Telefon Sekolah</label><input type="text" id="schoolContact" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="text-right"><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><span data-lang-key="save">Simpan</span></button></div></form></div>
-                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="user_management">Pengurusan Pengguna</h3><div class="border rounded-lg p-4 user-entry"><div class="flex justify-between items-center"><div><p class="font-semibold">Ahmad Bin Abu (ahmad.abu@email.com)</p><p class="text-sm text-gray-500"><span data-lang-key="status">Status</span>: <span class="user-status text-yellow-600 font-medium" data-lang-key="pending_approval">Menunggu Pengesahan</span></p></div><div class="user-actions"><button class="approve-user-btn bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600" data-lang-key="approve">Sahkan</button><button class="reject-user-btn bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600" data-lang-key="reject">Tolak</button></div></div></div></div>
+                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="user_management">Pengurusan Pengguna</h3><div id="user-management-list"></div></div>
                     </div>
                 </div>
                 <div id="reports-view">
@@ -294,6 +337,33 @@
                 </div>
                 <div id="confirm-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
                     <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 id="confirm-title" class="text-lg font-bold"></h3><p id="confirm-message" class="text-gray-600 my-4"></p><div id="confirm-inputs"></div><div class="text-right space-x-2 mt-6"><button id="confirm-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button><button id="confirm-ok-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Sahkan</button></div></div>
+                </div>
+                <div id="guest-password-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+                        <h3 class="text-lg font-bold">Log Masuk Tetamu</h3>
+                        <p class="text-gray-600 my-4">Sila masukkan kata laluan tetamu untuk meneruskan.</p>
+                        <form id="guest-password-form">
+                            <input type="password" id="guest-password-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div id="guest-password-error" class="text-red-500 text-sm text-center mt-2"></div>
+                            <div class="text-right space-x-2 mt-6">
+                                <button type="button" id="guest-password-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button>
+                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Sahkan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div id="create-account-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+                     <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                        <h3 class="text-lg font-bold">Cipta Akaun Baru</h3>
+                        <form id="create-account-form" class="space-y-4 mt-4">
+                            <div><label class="block text-sm">Nama Penuh</label><input type="text" id="reg-fullname" required class="w-full p-2 border rounded"></div>
+                            <div><label class="block text-sm">Jawatan</label><select id="reg-position" required class="w-full p-2 border rounded"></select></div>
+                            <div><label class="block text-sm">Emel</label><input type="email" id="reg-email" required class="w-full p-2 border rounded"></div>
+                            <div><label class="block text-sm">ID Pengguna</label><input type="text" id="reg-userid" required class="w-full p-2 border rounded"></div>
+                            <div><label class="block text-sm">Kata Laluan</label><input type="password" id="reg-password" required class="w-full p-2 border rounded"></div>
+                            <div class="text-right space-x-2"><button type="button" id="create-account-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">Batal</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Hantar Permohonan</button></div>
+                        </form>
+                    </div>
                 </div>
             `;
         }
@@ -337,15 +407,32 @@
         }
 
         function handleGuestLogin() {
-            const password = prompt('Sila masukkan kata laluan tetamu (Ybb4412.@):');
+            const modal = document.getElementById('guest-password-modal');
+            if (modal) {
+                modal.classList.add('active');
+                document.getElementById('guest-password-input').focus();
+            }
+        }
+
+        function handleGuestPasswordSubmit(e) {
+            e.preventDefault();
+            const modal = document.getElementById('guest-password-modal');
+            const passwordInput = document.getElementById('guest-password-input');
+            const errorDiv = document.getElementById('guest-password-error');
+            const password = passwordInput.value;
+
             if (password === 'Ybb4412.@') {
                 isGuest = true;
+                passwordInput.value = '';
+                errorDiv.textContent = '';
+                modal.classList.remove('active');
+                
                 loginPage.classList.add('hidden');
                 appPage.classList.remove('hidden');
                 appPage.classList.add('flex');
                 initialize();
             } else {
-                alert('Kata laluan salah.');
+                errorDiv.textContent = 'Kata laluan salah.';
             }
         }
 
@@ -809,6 +896,18 @@
             if (e.target.id === 'close-modal-btn' || e.target.id === 'cancel-btn') {
                 closeStudentModal();
             }
+             if (e.target.id === 'guest-password-cancel-btn') {
+                const modal = document.getElementById('guest-password-modal');
+                modal.classList.remove('active');
+                document.getElementById('guest-password-error').textContent = '';
+                document.getElementById('guest-password-input').value = '';
+            }
+        });
+
+        modalContainer.addEventListener('submit', (e) => {
+            if (e.target.id === 'guest-password-form') {
+                handleGuestPasswordSubmit(e);
+            }
         });
         
         modalContainer.addEventListener('input', (e) => {
@@ -821,7 +920,6 @@
                     const year = parseInt(idNumber.substring(0, 2));
                     const month = parseInt(idNumber.substring(2, 4)) - 1;
                     const day = parseInt(idNumber.substring(4, 6));
-                    const currentCentury = new Date().getFullYear().toString().substring(0, 2);
                     const fullYear = (year < (new Date().getFullYear() % 100) ? 2000 : 1900) + year;
                     
                     const date = new Date(fullYear, month, day);
