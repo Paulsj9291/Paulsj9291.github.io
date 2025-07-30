@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengurusan Asrama</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+        }
+        .modal.active {
+            display: flex; /* Show when active */
+        }
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .table-header-sortable {
+            cursor: pointer;
+        }
+        .table-header-sortable:hover {
+            background-color: #e5e7eb;
+        }
+        .org-chart-box {
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: white;
+            text-align: center;
+            min-width: 180px;
+        }
+        .org-chart-line {
+            height: 20px;
+            width: 1px;
+            background-color: #cbd5e1;
+            margin: 0 auto;
+        }
+        .disabled-ui {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .app-container.disabled-ui > main * {
+            pointer-events: none;
+        }
+         .app-container.disabled-ui > aside, .app-container.disabled-ui > aside *, .app-container.disabled-ui header * {
+            pointer-events: auto;
+        }
+        .app-container.disabled-ui > main {
+             pointer-events: auto;
+        }
+
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-section, #print-section * {
+                visibility: visible;
+            }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <!-- Login Page -->
+    <div id="login-page" class="w-full h-full flex items-center justify-center bg-gray-100">
+        <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Sistem Pengurusan Asrama</h2>
+            <p class="text-center text-gray-500 mb-8">Sila log masuk untuk meneruskan</p>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Nama Pengguna</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="admin">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Kata Laluan</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" value="admin">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-semibold">Log Masuk</button>
+                <div id="login-error" class="text-red-500 text-sm text-center mt-4"></div>
+            </form>
+            <div class="text-center text-sm text-gray-500 mt-6">
+                 <button id="guest-login-btn" class="text-blue-600 hover:underline">Log Masuk sebagai Tetamu</button>
+            </div>
+            <div class="text-center text-sm text-gray-500 mt-4">
+                <a href="#" class="hover:underline">Cipta Akaun Baru</a> |
+                <a href="#" class="hover:underline">Lupa ID Pengguna?</a> |
+                <a href="#" class="hover:underline">Lupa Kata Laluan?</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="hidden flex w-full h-full app-container">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-800 text-gray-200 flex flex-col">
+            <div class="p-6 text-center border-b border-gray-700">
+                <h1 class="text-2xl font-bold text-white">Asrama<span class="text-blue-400">KU</span></h1>
+                <p class="text-xs text-gray-400 mt-1" data-lang-key="version">Versi 2.3</p>
+            </div>
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="#" id="nav-dashboard" class="sidebar-link flex items-center px-4 py-2 rounded-lg active"><i class="fas fa-tachometer-alt w-6"></i><span data-lang-key="dashboard">Dashboard</span></a>
+                <a href="#" id="nav-students" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-users w-6"></i><span data-lang-key="student_list">Senarai Pelajar</span></a>
+                <a href="#" id="nav-fees" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-file-invoice-dollar w-6"></i><span data-lang-key="annual_fees">Yuran Tahunan</span></a>
+                <a href="#" id="nav-organization" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-sitemap w-6"></i><span data-lang-key="organization">Organisasi</span></a>
+                <a href="#" id="nav-contractor" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-utensils w-6"></i><span data-lang-key="contractor">Kontraktor</span></a>
+                <a href="#" id="nav-admin" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-cogs w-6"></i><span data-lang-key="administration">Pentadbiran</span></a>
+                <a href="#" id="nav-reports" class="sidebar-link flex items-center px-4 py-2 rounded-lg"><i class="fas fa-chart-pie w-6"></i><span data-lang-key="reports">Laporan</span></a>
+            </nav>
+            <div class="p-4 border-t border-gray-700">
+                <button id="logout-button" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition duration-300 flex items-center justify-center">
+                    <i class="fas fa-sign-out-alt mr-2"></i><span data-lang-key="logout">Log Keluar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col bg-gray-50">
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+                <h2 id="page-title" class="text-2xl font-bold text-gray-800" data-lang-key="dashboard">Dashboard</h2>
+                <div class="flex items-center space-x-4">
+                    <span id="welcome-message" class="text-gray-600"></span>
+                    <button id="lang-switcher" class="text-gray-600 hover:text-blue-600 font-semibold">EN</button>
+                    <i class="fas fa-bell text-gray-500"></i>
+                </div>
+            </header>
+
+            <div id="content" class="flex-1 p-6 overflow-y-auto">
+                <!-- All Views will be rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- All Modal and Template HTML will be injected by JS -->
+    <div id="modal-container"></div>
+    <div id="view-container" class="hidden"></div>
+    <div id="print-section" class="p-8"></div>
+
+    <script>
+    // --- SCRIPT START ---
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- DATA STORE ---
+        let db = {
+            students: [
+                { id: 1, studentName: 'AHMAD BIN ALI', gender: 'Lelaki', class: '5 Cemerlang', religion: 'Islam', idNumber: '080115080123', dob: '15 Jan 2008', citizenship: 'Warganegara Malaysia', address: 'No. 1, Jalan 1, Taman 1, 12345 Kuala Lumpur', contactNumber: '0123456789', allergy: ['Habuk'], sickness: ['Asma'], sports: 'Bola Sepak', clubs: 'Sains & Matematik', uniforms: 'Kadet Polis', status: 'active', feePaid: true, paymentDate: '2025-01-15', receiptNumber: 'R001', parentName: 'ALI BIN HASSAN', parentIdNumber: '750101081234', parentContactNumber: '0129876543', parentAddress: 'No. 1, Jalan 1, Taman 1, 12345 Kuala Lumpur', offboardDate: null },
+                { id: 2, studentName: 'SITI BINTI AMINAH', gender: 'Perempuan', class: '1 Gemilang', religion: 'Islam', idNumber: '120320080456', dob: '20 Mar 2012', citizenship: 'Warganegara Malaysia', address: 'No. 2, Jalan 2, Taman 2, 12345 Kuala Lumpur', contactNumber: '0198765432', allergy: ['Tiada'], sickness: ['Tiada'], sports: 'Tiada Aktiviti Kokurikulum', clubs: 'Tiada Aktiviti Kokurikulum', uniforms: 'Tiada Aktiviti Kokurikulum', status: 'active', feePaid: false, paymentDate: null, receiptNumber: null, parentName: 'AMINAH BINTI ISMAIL', parentIdNumber: '800202084567', parentContactNumber: '0192345678', parentAddress: 'No. 2, Jalan 2, Taman 2, 12345 Kuala Lumpur', offboardDate: null },
+                { id: 3, studentName: 'LEE WEI JIE', gender: 'Lelaki', class: '6 Gemilang', religion: 'Buddha', idNumber: '070510015543', dob: '10 May 2007', citizenship: 'Warganegara Malaysia', address: 'No. 3, Jalan 3, Taman 3, 12345 Kuala Lumpur', contactNumber: '0111234567', allergy: ['Tiada'], sickness: ['Tiada'], sports: 'Badminton', clubs: 'Catur', uniforms: 'Pengakap', status: 'inactive', feePaid: true, paymentDate: '2024-01-20', receiptNumber: 'R003', parentName: 'LEE AH MENG', parentIdNumber: '700101011234', parentContactNumber: '0119876543', parentAddress: 'No. 3, Jalan 3, Taman 3, 12345 Kuala Lumpur', offboardReason: 'Tamat Pengajian', offboardDate: '2024-11-15' },
+            ],
+            orgMembers: [
+                { key: 'gb', position: 'Guru Besar', name: 'Dr. Ahmad Maslan', id: '700101-01-1234', contact: '012-1112222', start: '2020-01-01', end: '', status: 'active' },
+                { key: 'pkp', position: 'Penolong Kanan Pentadbiran', name: 'Puan Siti Saleha', id: '750202-02-2345', contact: '012-3334444', start: '2021-06-15', end: '', status: 'active' },
+                { key: 'pkhem', position: 'Penolong Kanan Hal Ehwal Murid', name: 'Encik Kumarasan', id: '800303-03-3456', contact: '012-5556666', start: '2019-03-01', end: '2023-12-31', status: 'inactive' },
+                { key: 'pkk', position: 'Penolong Kanan Kokurikulum', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'warden1', position: 'Warden Asrama 1', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'warden2', position: 'Warden Asrama 2', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'warden3', position: 'Warden Asrama 3', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'ppm1', position: 'Pembantu Pengurusan Murid 1', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'ppm2', position: 'Pembantu Pengurusan Murid 2', name: '', id: '', contact: '', start: '', end: '', status: 'active' },
+                { key: 'penyelia', position: 'Penyelia Asrama', name: '', id: '', contact: '', start: '', end: '', status: 'active' }
+            ],
+            contractorInfo: {
+                companyName: 'SELERA MAJU CATERING', regNum: 'JM0123456-A', contractRef: 'KPM/SKC/2024/001', startDate: '2024-01-01', endDate: '2024-07-29', owner: 'Encik Razali', pic: 'Puan Maria', phone: '019-9990000', cookName: 'Siti', cookId: '850101-01-1111', cookPhone: '018-8887777', typhoidDate: '2024-02-15', healthCheckDate: '2024-02-15'
+            },
+            archivedContractors: [
+                { companyName: 'SEDAP SENTIASA SDN BHD', regNum: 'KL987654-B', contractRef: 'KPM/SKC/2022/005', startDate: '2022-01-01', endDate: '2023-12-31', owner: 'Puan Lim', pic: 'Encik David', phone: '012-3456789' }
+            ],
+            translations: {
+                bm: {"welcome":"Selamat datang","dashboard":"Dashboard","student_list":"Senarai Pelajar","annual_fees":"Yuran Tahunan","organization":"Organisasi","contractor":"Kontraktor","administration":"Pentadbiran","reports":"Laporan","logout":"Log Keluar","version":"Versi","export_csv":"Eksport CSV","add_student":"Tambah Pelajar","school_info":"Maklumat Sekolah","school_name":"Nama Sekolah","school_email":"Emel Sekolah","school_contact":"No. Telefon Sekolah","save":"Simpan","user_management":"Pengurusan Pengguna","status":"Status","pending_approval":"Menunggu Pengesahan","approve":"Sahkan","reject":"Tolak","add_new_student":"Tambah Pelajar Baru","personal_details":"Maklumat Peribadi","parent_details":"Maklumat Ibu Bapa/Penjaga","parent_name":"Nama Penuh","parent_id":"No. KP","parent_contact":"No. Telefon Penjaga","address":"Alamat","same_as_student":"Sama seperti alamat pelajar","health_cocu_details":"Maklumat Kesihatan & Kokurikulum","allergy":"Alahan","sickness":"Penyakit","class":"Kelas","cancel":"Batal","save_changes":"Simpan Perubahan","org_chart":"Carta Organisasi","edit_org_info":"Kemaskini Maklumat Unit Pengurusan Asrama","contractor_info":"Maklumat Kontraktor Bekalan Makanan Bermasak","total_active_students":"Jumlah Pelajar Aktif","male":"Lelaki","female":"Perempuan","fees_paid":"Yuran Dibayar","name":"Nama","id_no":"No. KP / Sijil Lahir","gender":"Jantina","actions":"Tindakan","annual_fee_status":"Status Pembayaran Yuran Tahunan","payment_status":"Status Bayaran","payment_date":"Tarikh Bayaran","receipt_no":"No. Resit","full_name":"Nama Penuh","religion":"Agama","id_no_birth_cert":"No. KP / Sijil Lahir","dob":"Tarikh Lahir","citizenship":"Warganegara","contact_no":"No. Telefon","sports_games":"Sukan & Permainan","clubs_societies":"Kelab & Persatuan","uniformed_groups":"Badan Beruniform","active_students":"Pelajar Aktif","inactive_students":"Pelajar Tidak Aktif","search_placeholder":"Cari Nama / No. KP...","guest":"Tetamu","admin":"Pentadbir"},
+                en: {"welcome":"Welcome","dashboard":"Dashboard","student_list":"Student List","annual_fees":"Annual Fees","organization":"Organization","contractor":"Contractor","administration":"Administration","reports":"Reports","logout":"Logout","version":"Version","export_csv":"Export CSV","add_student":"Add Student","school_info":"School Information","school_name":"School Name","school_email":"School Email","school_contact":"School Contact","save":"Save","user_management":"User Management","status":"Status","pending_approval":"Pending Approval","approve":"Approve","reject":"Reject","add_new_student":"Add New Student","personal_details":"Personal Details","parent_details":"Parent's/Guardian's Details","parent_name":"Full Name","parent_id":"ID Number","parent_contact":"Parent's Contact No.","address":"Address","same_as_student":"Same as student's address","health_cocu_details":"Health & Co-curricular Details","allergy":"Allergy","sickness":"Sickness","class":"Class","cancel":"Cancel","save_changes":"Save Changes","org_chart":"Organization Chart","edit_org_info":"Edit Hostel Management Unit Information","contractor_info":"Cooked Food Supply Contractor Information","total_active_students":"Total Active Students","male":"Male","female":"Female","fees_paid":"Fees Paid","name":"Name","id_no":"ID No. / Birth Cert","gender":"Gender","actions":"Actions","annual_fee_status":"Annual Fee Payment Status","payment_status":"Payment Status","payment_date":"Payment Date","receipt_no":"Receipt No.","full_name":"Full Name","religion":"Religion","id_no_birth_cert":"ID No. / Birth Cert","dob":"Date of Birth","citizenship":"Citizenship","contact_no":"Contact No.","sports_games":"Sports & Games","clubs_societies":"Clubs & Societies","uniformed_groups":"Uniformed Groups","active_students":"Active Students","inactive_students":"Inactive Students","search_placeholder":"Search Name / ID No...","guest":"Guest","admin":"Admin"}
+            }
+        };
+
+        let nextStudentId = (db.students.length > 0) ? Math.max(...db.students.map(s => s.id)) + 1 : 1;
+        let currentSort = { column: 'studentName', order: 'asc' };
+        let isGuest = false;
+        let currentLanguage = 'bm';
+
+        // --- DOM ELEMENTS ---
+        const loginPage = document.getElementById('login-page');
+        const appPage = document.getElementById('app');
+        const loginForm = document.getElementById('login-form');
+        const logoutButton = document.getElementById('logout-button');
+        const pageTitle = document.getElementById('page-title');
+        const contentDiv = document.getElementById('content');
+        const langSwitcher = document.getElementById('lang-switcher');
+        const guestLoginBtn = document.getElementById('guest-login-btn');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const modalContainer = document.getElementById('modal-container');
+        const viewContainer = document.getElementById('view-container');
+        
+        const navLinks = {
+            dashboard: document.getElementById('nav-dashboard'),
+            students: document.getElementById('nav-students'),
+            fees: document.getElementById('nav-fees'),
+            organization: document.getElementById('nav-organization'),
+            contractor: document.getElementById('nav-contractor'),
+            admin: document.getElementById('nav-admin'),
+            reports: document.getElementById('nav-reports'),
+        };
+
+        // --- ALL FUNCTION DEFINITIONS (ORDERED) ---
+        
+        function loadTemplates() {
+            viewContainer.innerHTML = `
+                <div id="dashboard-view">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow flex items-center justify-between"><div><p class="text-sm text-gray-500" data-lang-key="total_active_students">Jumlah Pelajar Aktif</p><p id="stat-total-students" class="text-3xl font-bold text-gray-800">0</p></div><i class="fas fa-users text-4xl text-blue-400"></i></div>
+                        <div class="bg-white p-6 rounded-lg shadow flex items-center justify-between"><div><p class="text-sm text-gray-500" data-lang-key="male">Lelaki</p><p id="stat-male-students" class="text-3xl font-bold text-gray-800">0</p></div><i class="fas fa-male text-4xl text-green-400"></i></div>
+                        <div class="bg-white p-6 rounded-lg shadow flex items-center justify-between"><div><p class="text-sm text-gray-500" data-lang-key="female">Perempuan</p><p id="stat-female-students" class="text-3xl font-bold text-gray-800">0</p></div><i class="fas fa-female text-4xl text-pink-400"></i></div>
+                        <div class="bg-white p-6 rounded-lg shadow flex items-center justify-between"><div><p class="text-sm text-gray-500" data-lang-key="fees_paid">Yuran Dibayar</p><p id="stat-fees-paid" class="text-3xl font-bold text-gray-800">0%</p></div><i class="fas fa-check-circle text-4xl text-teal-400"></i></div>
+                    </div>
+                </div>
+                <div id="students-view">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                            <div class="flex items-center space-x-4"><div class="relative"><input type="text" id="search-student" class="pl-10 pr-4 py-2 border rounded-lg w-64"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i></div><select id="filter-status" class="border rounded-lg py-2 px-4"><option value="active" data-lang-key="active_students">Pelajar Aktif</option><option value="inactive" data-lang-key="inactive_students">Pelajar Tidak Aktif</option></select><select id="year-filter" class="hidden border rounded-lg py-2 px-4"></select></div>
+                            <div class="flex items-center space-x-2"><button id="export-csv-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold flex items-center"><i class="fas fa-file-csv mr-2"></i><span data-lang-key="export_csv">Eksport CSV</span></button><button id="add-student-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold flex items-center"><i class="fas fa-plus mr-2"></i><span data-lang-key="add_student">Tambah Pelajar</span></button></div>
+                        </div>
+                        <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-600"><thead class="text-xs text-gray-700 uppercase bg-gray-100"><tr><th scope="col" class="px-6 py-3 table-header-sortable" data-sort="studentName" data-lang-key="name">Nama</th><th scope="col" class="px-6 py-3 table-header-sortable" data-sort="idNumber" data-lang-key="id_no">No. KP / Sijil Lahir</th><th scope="col" class="px-6 py-3 table-header-sortable" data-sort="gender" data-lang-key="gender">Jantina</th><th scope="col" class="px-6 py-3 table-header-sortable" data-sort="class" data-lang-key="class">Kelas</th><th scope="col" class="px-6 py-3" data-lang-key="actions">Tindakan</th></tr></thead><tbody id="student-table-body"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="fees-view">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold mb-4" data-lang-key="annual_fee_status">Status Pembayaran Yuran Tahunan</h3>
+                        <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-600"><thead class="text-xs text-gray-700 uppercase bg-gray-100"><tr><th scope="col" class="px-6 py-3" data-lang-key="name">Nama</th><th scope="col" class="px-6 py-3" data-lang-key="class">Kelas</th><th scope="col" class="px-6 py-3" data-lang-key="payment_status">Status Bayaran</th><th scope="col" class="px-6 py-3" data-lang-key="payment_date">Tarikh Bayaran</th><th scope="col" class="px-6 py-3" data-lang-key="receipt_no">No. Resit</th><th scope="col" class="px-6 py-3" data-lang-key="actions">Tindakan</th></tr></thead><tbody id="fees-table-body"></tbody></table></div>
+                    </div>
+                </div>
+                <div id="organization-view">
+                    <div class="flex justify-end mb-4 gap-2"><button id="print-org-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm"><i class="fas fa-print mr-2"></i>Cetak Carta</button><button id="toggle-org-archive-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 text-sm"><i class="fas fa-archive mr-2"></i>Lihat Arkib</button></div>
+                    <div id="active-org-view">
+                        <div class="bg-white p-6 rounded-lg shadow mb-6"><h3 class="text-xl font-bold mb-4" data-lang-key="org_chart">Carta Organisasi</h3><div id="org-chart-display" class="space-y-4"></div></div>
+                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="edit_org_info">Kemaskini Maklumat Unit Pengurusan Asrama</h3><div id="org-form-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div><div class="text-right mt-4"><button id="save-org-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"><span data-lang-key="save_changes">Simpan Perubahan</span></button></div></div>
+                    </div>
+                    <div id="archive-org-view" class="hidden bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4">Arkib Ahli Pengurusan</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-600"><thead class="text-xs text-gray-700 uppercase bg-gray-100"><tr><th class="px-6 py-3">Nama</th><th class="px-6 py-3">Jawatan</th><th class="px-6 py-3">Tarikh Mula</th><th class="px-6 py-3">Tarikh Tamat</th></tr></thead><tbody id="org-archive-table-body"></tbody></table></div></div>
+                </div>
+                <div id="contractor-view">
+                    <div class="flex justify-end mb-4 gap-2"><button id="print-contractor-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm"><i class="fas fa-print mr-2"></i>Cetak Maklumat</button><button id="toggle-contractor-archive-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 text-sm"><i class="fas fa-archive mr-2"></i>Lihat Arkib</button></div>
+                    <div id="active-contractor-view">
+                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="contractor_info">Maklumat Kontraktor Bekalan Makanan Bermasak</h3><form id="contractor-form" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4"></form><div class="text-right mt-4"><button id="save-contractor-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold"><span data-lang-key="save_changes">Simpan Perubahan</span></button></div></div>
+                    </div>
+                    <div id="archive-contractor-view" class="hidden bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4">Arkib Kontraktor</h3><div id="contractor-archive-list" class="space-y-4"></div></div>
+                </div>
+                <div id="admin-view">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="school_info">Maklumat Sekolah</h3><form id="school-info-form" class="space-y-4"><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_name">Nama Sekolah</label><input type="text" id="schoolName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_email">Emel Sekolah</label><input type="email" id="schoolEmail" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label class="block text-sm font-medium text-gray-700" data-lang-key="school_contact">No. Telefon Sekolah</label><input type="text" id="schoolContact" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="text-right"><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"><span data-lang-key="save">Simpan</span></button></div></form></div>
+                        <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-xl font-bold mb-4" data-lang-key="user_management">Pengurusan Pengguna</h3><div class="border rounded-lg p-4 user-entry"><div class="flex justify-between items-center"><div><p class="font-semibold">Ahmad Bin Abu (ahmad.abu@email.com)</p><p class="text-sm text-gray-500"><span data-lang-key="status">Status</span>: <span class="user-status text-yellow-600 font-medium" data-lang-key="pending_approval">Menunggu Pengesahan</span></p></div><div class="user-actions"><button class="approve-user-btn bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600" data-lang-key="approve">Sahkan</button><button class="reject-user-btn bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600" data-lang-key="reject">Tolak</button></div></div></div></div>
+                    </div>
+                </div>
+                <div id="reports-view">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-xl font-bold mb-4">Cetak Laporan</h3><p class="text-gray-600 mb-4">Pilih pelajar dan maklumat yang ingin dicetak atau dieksport ke PDF.</p>
+                        <div class="border-b pb-4 mb-4">
+                            <h4 class="font-semibold mb-2">1. Tapis Senarai Pelajar</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div><label class="block text-sm">Tahun Akademik</label><select id="report-year-filter" class="w-full border rounded-lg p-2 mt-1"></select></div>
+                                <div><label class="block text-sm">Kelas</label><select id="report-class-filter" class="w-full border rounded-lg p-2 mt-1"></select></div>
+                                <div><label class="block text-sm">Jantina</label><select id="report-gender-filter" class="w-full border rounded-lg p-2 mt-1"></select></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><h4 class="font-semibold mb-2">2. Pilih Pelajar</h4><div class="flex items-center mb-2 gap-4"><div><input type="checkbox" id="select-all-students-print" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="select-all-students-print" class="ml-2 block text-sm text-gray-900">Pilih Semua</label></div><div><button id="clear-all-students-print" class="text-sm text-red-600 hover:underline">Kosongkan Semua</button></div></div><div id="student-selection-list" class="border rounded-lg p-2 h-64 overflow-y-auto space-y-1"></div></div>
+                            <div><h4 class="font-semibold mb-2">3. Pilih Maklumat</h4><div id="field-selection-list" class="space-y-2 h-72 overflow-y-auto"></div></div>
+                        </div>
+                        <div class="mt-6 text-right"><button id="generate-report-btn" class="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 font-semibold flex items-center float-right"><i class="fas fa-print mr-2"></i>Jana & Cetak</button></div>
+                    </div>
+                </div>
+            `;
+
+            modalContainer.innerHTML = `
+                <div id="student-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+                        <div class="p-4 border-b flex justify-between items-center"><h3 id="modal-title" class="text-xl font-bold" data-lang-key="add_new_student">Tambah Pelajar Baru</h3><button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button></div>
+                        <form id="student-form" class="p-6 overflow-y-auto"><input type="hidden" id="student-id"><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="personal_details">Maklumat Peribadi</h4><div><label for="studentName" class="block text-sm font-medium text-gray-700" data-lang-key="full_name">Nama Penuh</label><input type="text" id="studentName" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="grid grid-cols-2 gap-4"><div><label for="gender" class="block text-sm font-medium text-gray-700" data-lang-key="gender">Jantina</label><select id="gender" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="religion" class="block text-sm font-medium text-gray-700" data-lang-key="religion">Agama</label><select id="religion" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div><div><label for="idNumber" class="block text-sm font-medium text-gray-700" data-lang-key="id_no_birth_cert">No. KP / Sijil Lahir</label><input type="text" id="idNumber" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div class="grid grid-cols-2 gap-4"><div><label for="dob" class="block text-sm font-medium text-gray-700" data-lang-key="dob">Tarikh Lahir</label><input type="text" id="dob" readonly class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-100"></div><div><label for="citizenship" class="block text-sm font-medium text-gray-700" data-lang-key="citizenship">Warganegara</label><select id="citizenship" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div><div><label for="class" class="block text-sm font-medium text-gray-700" data-lang-key="class">Kelas</label><select id="class" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="address" class="block text-sm font-medium text-gray-700" data-lang-key="address">Alamat</label><textarea id="address" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea></div><div><label for="contactNumber" class="block text-sm font-medium text-gray-700" data-lang-key="contact_no">No. Telefon</label><input type="text" id="contactNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div></div><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="parent_details">Maklumat Ibu Bapa/Penjaga</h4><div><label for="parentName" class="block text-sm font-medium text-gray-700" data-lang-key="parent_name">Nama Penuh</label><input type="text" id="parentName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentIdNumber" class="block text-sm font-medium text-gray-700" data-lang-key="parent_id">No. KP</label><input type="text" id="parentIdNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentContactNumber" class="block text-sm font-medium text-gray-700" data-lang-key="parent_contact">No. Telefon</label><input type="text" id="parentContactNumber" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></div><div><label for="parentAddress" class="block text-sm font-medium text-gray-700" data-lang-key="address">Alamat</label><textarea id="parentAddress" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></textarea><div class="flex items-center mt-2"><input id="same-address-checkbox" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded"><label for="same-address-checkbox" class="ml-2 block text-sm text-gray-900" data-lang-key="same_as_student">Sama seperti alamat pelajar</label></div></div></div><div class="space-y-4 p-4 border rounded-lg"><h4 class="font-semibold text-lg text-gray-700 border-b pb-2" data-lang-key="health_cocu_details">Maklumat Kesihatan & Kokurikulum</h4><div><label for="allergy" class="block text-sm font-medium text-gray-700" data-lang-key="allergy">Alahan</label><select id="allergy" multiple class="mt-1 block w-full border-gray-300 rounded-md shadow-sm h-24"><option value="Tiada">Tiada</option><option>Makanan Laut</option><option>Kekacang</option><option>Habuk</option><option>Ubat-ubatan</option></select></div><div><label for="sickness" class="block text-sm font-medium text-gray-700" data-lang-key="sickness">Penyakit</label><select id="sickness" multiple class="mt-1 block w-full border-gray-300 rounded-md shadow-sm h-24"><option value="Tiada">Tiada</option><option>Asma</option><option>Ekzema</option><option>Migrain</option><option>Sawan</option></select></div><div class="border-t pt-4 space-y-4"><div><label for="sports" class="block text-sm font-medium text-gray-700" data-lang-key="sports_games">Sukan & Permainan</label><select id="sports" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="clubs" class="block text-sm font-medium text-gray-700" data-lang-key="clubs_societies">Kelab & Persatuan</label><select id="clubs" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div><div><label for="uniforms" class="block text-sm font-medium text-gray-700" data-lang-key="uniformed_groups">Badan Beruniform</label><select id="uniforms" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"></select></div></div></div></div>
+                            <div class="p-4 bg-gray-50 text-right"><button type="button" id="cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400" data-lang-key="cancel">Batal</button><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold" data-lang-key="save">Simpan</button></div>
+                        </form>
+                    </div>
+                </div>
+                <div id="confirm-modal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 id="confirm-title" class="text-lg font-bold"></h3><p id="confirm-message" class="text-gray-600 my-4"></p><div id="confirm-inputs"></div><div class="text-right space-x-2 mt-6"><button id="confirm-cancel-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400">Batal</button><button id="confirm-ok-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Sahkan</button></div></div>
+                </div>
+            `;
+        }
+        
+        function translateUI(lang) {
+            currentLanguage = lang;
+            langSwitcher.textContent = lang === 'bm' ? 'EN' : 'BM';
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.dataset.langKey;
+                const translation = db.translations[lang]?.[key] || db.translations['bm']?.[key] || key;
+                if (el.placeholder) el.placeholder = translation;
+                else el.textContent = translation;
+            });
+            if (document.body.contains(appPage) && !appPage.classList.contains('hidden')) {
+                updateWelcomeMessage();
+                const activeNav = document.querySelector('.sidebar-link.active');
+                if (activeNav) navigateTo(activeNav.id.replace('nav-', ''));
+            }
+        }
+        
+        function updateWelcomeMessage() {
+            const userTypeKey = isGuest ? 'guest' : 'admin';
+            const welcomeText = db.translations[currentLanguage]['welcome'];
+            const userTypeText = db.translations[currentLanguage][userTypeKey];
+            welcomeMessage.innerHTML = `${welcomeText}, <span class="font-semibold">${userTypeText}</span>`;
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            if (username === 'admin' && password === 'admin') {
+                isGuest = false;
+                loginPage.classList.add('hidden');
+                appPage.classList.remove('hidden');
+                appPage.classList.add('flex');
+                initialize();
+            } else {
+                document.getElementById('login-error').textContent = 'Nama pengguna atau kata laluan tidak sah.';
+            }
+        }
+
+        function handleGuestLogin() {
+            const password = prompt('Sila masukkan kata laluan tetamu (admin):');
+            if (password === 'admin') {
+                isGuest = true;
+                loginPage.classList.add('hidden');
+                appPage.classList.remove('hidden');
+                appPage.classList.add('flex');
+                initialize();
+            } else {
+                alert('Kata laluan salah.');
+            }
+        }
+
+        function handleLogout() {
+            appPage.classList.add('hidden');
+            appPage.classList.remove('flex');
+            loginPage.classList.remove('hidden');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('password').value = 'admin';
+        }
+
+        function navigateTo(viewName) {
+            const viewTemplate = viewContainer.querySelector(`#${viewName}-view`);
+            if (viewTemplate) contentDiv.innerHTML = viewTemplate.outerHTML;
+
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const activeLink = document.getElementById(`nav-${viewName}`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+                pageTitle.textContent = activeLink.querySelector('span').textContent;
+            }
+            
+            if (viewName === 'dashboard') updateDashboardStats();
+            if (viewName === 'students') renderStudentTable();
+            if (viewName === 'fees') renderFeesTable();
+            if (viewName === 'organization') { renderOrgForm(); renderOrgChart(); }
+            if (viewName === 'contractor') renderContractorForm();
+            if (viewName === 'reports') renderReportsView();
+        }
+
+        function updateDashboardStats() {
+            const activeStudents = db.students.filter(s => s.status === 'active');
+            document.getElementById('stat-total-students').textContent = activeStudents.length;
+            document.getElementById('stat-male-students').textContent = activeStudents.filter(s => s.gender === 'Lelaki').length;
+            document.getElementById('stat-female-students').textContent = activeStudents.filter(s => s.gender === 'Perempuan').length;
+            const paidCount = activeStudents.filter(s => s.feePaid).length;
+            const paidPercentage = activeStudents.length > 0 ? Math.round((paidCount / activeStudents.length) * 100) : 0;
+            document.getElementById('stat-fees-paid').textContent = `${paidPercentage}%`;
+        }
+
+        function renderStudentTable() {
+            const studentTableBody = document.getElementById('student-table-body');
+            if (!studentTableBody) return;
+            studentTableBody.innerHTML = '';
+            const statusFilter = document.getElementById('filter-status').value;
+            let filteredStudents = db.students.filter(s => s.status === statusFilter);
+            filteredStudents.forEach(student => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+                const genderKey = student.gender ? student.gender.toLowerCase() : '';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${student.studentName}</td>
+                    <td class="px-6 py-4">${student.idNumber}</td>
+                    <td class="px-6 py-4">${db.translations[currentLanguage][genderKey] || student.gender}</td>
+                    <td class="px-6 py-4">${student.class}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex space-x-2">
+                            <button data-id="${student.id}" class="edit-btn text-blue-600 hover:text-blue-800"><i class="fas fa-pencil-alt"></i></button>
+                            ${!isGuest && student.status === 'active' ? `
+                            <button data-id="${student.id}" class="transfer-btn text-yellow-600 hover:text-yellow-800" title="Pindah"><i class="fas fa-exchange-alt"></i></button>
+                            <button data-id="${student.id}" class="discipline-btn text-red-600 hover:text-red-800" title="Dikeluarkan Atas Sebab Disiplin"><i class="fas fa-gavel"></i></button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                studentTableBody.appendChild(row);
+
+                if (statusFilter === 'inactive') {
+                    const reasonRow = document.createElement('tr');
+                    reasonRow.className = 'bg-gray-50 border-b';
+                    reasonRow.innerHTML = `<td colspan="5" class="px-6 py-2 text-xs text-red-600"><i>Sebab: ${student.offboardReason || 'Tidak dinyatakan'}</i></td>`;
+                    studentTableBody.appendChild(reasonRow);
+                }
+            });
+        }
+
+        function renderFeesTable() {
+            const feesTableBody = document.getElementById('fees-table-body');
+            if (!feesTableBody) return;
+            feesTableBody.innerHTML = '';
+            db.students.filter(s => s.status === 'active').forEach(student => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b';
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${student.studentName}</td>
+                    <td class="px-6 py-4">${student.class}</td>
+                    <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${student.feePaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${student.feePaid ? 'Sudah Bayar' : 'Belum Bayar'}</span></td>
+                    <td class="px-6 py-4">${student.paymentDate || '-'}</td>
+                    <td class="px-6 py-4">${student.receiptNumber || '-'}</td>
+                    <td class="px-6 py-4">${!isGuest ? (student.feePaid ? `<button data-id="${student.id}" class="unpay-fee-btn bg-gray-400 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-500">Batal</button>` : `<button data-id="${student.id}" class="pay-fee-btn bg-green-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-600">Bayar</button>`) : ''}</td>
+                `;
+                feesTableBody.appendChild(row);
+            });
+        }
+
+        function renderOrgChart() {
+            const container = document.getElementById('org-chart-display');
+            if (!container) return;
+            const createBox = (member) => {
+                if (!member) return `<div class="org-chart-box"><p class="font-bold"><i>(Jawatan Kosong)</i></p></div>`;
+                return `<div class="org-chart-box"><p class="font-bold">${member.name || '<i>(Kosong)</i>'}</p><p class="text-sm text-gray-600">${member.position}</p></div>`;
+            };
+            container.innerHTML = `
+                <div class="flex justify-center">${createBox(db.orgMembers.find(m=>m.key==='gb' && m.status === 'active'))}</div>
+                <div class="org-chart-line"></div>
+                <div class="flex justify-around flex-wrap gap-4">${['pkp', 'pkhem', 'pkk'].map(key => createBox(db.orgMembers.find(m=>m.key===key && m.status === 'active'))).join('')}</div>
+                <div class="org-chart-line"></div>
+                <div class="flex justify-around flex-wrap gap-4">${['warden1', 'warden2', 'warden3'].map(key => createBox(db.orgMembers.find(m=>m.key===key && m.status === 'active'))).join('')}</div>
+                <div class="org-chart-line"></div>
+                <div class="flex justify-center flex-wrap gap-4">${['ppm1', 'ppm2', 'penyelia'].map(key => createBox(db.orgMembers.find(m=>m.key===key && m.status === 'active'))).join('')}</div>
+            `;
+        }
+
+        function renderOrgForm() {
+            const container = document.getElementById('org-form-container');
+            if (!container) return;
+            container.innerHTML = '';
+            db.orgMembers.filter(m => m.status === 'active').forEach(member => {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'p-4 border rounded-lg';
+                formGroup.innerHTML = `
+                    <h4 class="font-semibold mb-2">${member.position}</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label class="block text-sm">Nama</label><input type="text" data-key="${member.key}" data-field="name" value="${member.name}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm p-1"></div>
+                        <div><label class="block text-sm">No. KP</label><input type="text" data-key="${member.key}" data-field="id" value="${member.id}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm p-1"></div>
+                        <div><label class="block text-sm">No. Telefon</label><input type="text" data-key="${member.key}" data-field="contact" value="${member.contact}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm p-1"></div>
+                        <div><label class="block text-sm">Tarikh Mula</label><input type="date" data-key="${member.key}" data-field="start" value="${member.start}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm p-1"></div>
+                        <div class="sm:col-span-2"><label class="block text-sm">Tarikh Tamat</label><input type="date" data-key="${member.key}" data-field="end" value="${member.end}" class="mt-1 w-full border-gray-300 rounded-md shadow-sm text-sm p-1"></div>
+                    </div>
+                `;
+                container.appendChild(formGroup);
+            });
+        }
+        
+        function renderOrgArchiveTable() {
+            const tbody = document.getElementById('org-archive-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            db.orgMembers.filter(m => m.status === 'inactive').forEach(member => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b';
+                row.innerHTML = `<td class="px-6 py-4">${member.name}</td><td class="px-6 py-4">${member.position}</td><td class="px-6 py-4">${member.start}</td><td class="px-6 py-4">${member.end}</td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderContractorForm() {
+            const form = document.getElementById('contractor-form');
+            if (!form) return;
+            const fields = [
+                { key: 'companyName', label: 'Nama Syarikat' }, { key: 'regNum', label: 'No. Pendaftaran Syarikat' },
+                { key: 'contractRef', label: 'No. Rujukan Kontrak' }, { key: 'owner', label: 'Pemilik Syarikat' },
+                { key: 'startDate', label: 'Tarikh Kontrak Mula', type: 'date' }, { key: 'endDate', label: 'Tarikh Kontrak Tamat', type: 'date' },
+                { key: 'pic', label: 'Pegawai Perhubungan' }, { key: 'phone', label: 'No. Telefon (PIC)' },
+                { key: 'cookName', label: 'Nama Tukang Masak' }, { key: 'cookId', label: 'No. KP Tukang Masak' },
+                { key: 'cookPhone', label: 'No. Telefon Tukang Masak' }, { key: 'typhoidDate', label: 'Tarikh Suntikan Tifoid', type: 'date' },
+                { key: 'healthCheckDate', label: 'Tarikh Pemeriksaan Kesihatan', type: 'date' }
+            ];
+            form.innerHTML = '';
+            fields.forEach(field => {
+                form.innerHTML += `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">${field.label}</label>
+                        <input type="${field.type || 'text'}" id="contractor-${field.key}" value="${db.contractorInfo[field.key]}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                `;
+            });
+        }
+        
+        function renderContractorArchive() {
+            const container = document.getElementById('contractor-archive-list');
+            if (!container) return;
+            container.innerHTML = '';
+            if (db.archivedContractors.length === 0) {
+                container.innerHTML = `<p class="text-gray-500">Tiada rekod kontraktor lama.</p>`;
+                return;
+            }
+            db.archivedContractors.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'p-4 border rounded-lg';
+                card.innerHTML = `
+                    <h4 class="font-bold text-lg">${c.companyName}</h4>
+                    <p class="text-sm text-gray-600">No. Pendaftaran: ${c.regNum}</p>
+                    <p class="text-sm text-gray-600">Tempoh Kontrak: ${c.startDate} hingga ${c.endDate}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function renderReportsView() {
+            const studentList = document.getElementById('student-selection-list');
+            const fieldList = document.getElementById('field-selection-list');
+            if (!studentList || !fieldList) return;
+            
+            // Populate filters
+            const yearFilter = document.getElementById('report-year-filter');
+            const classFilter = document.getElementById('report-class-filter');
+            const genderFilter = document.getElementById('report-gender-filter');
+            
+            const years = [...new Set(db.students.map(s => s.offboardDate ? new Date(s.offboardDate).getFullYear() : new Date().getFullYear()))].sort((a,b) => b-a);
+            yearFilter.innerHTML = '<option value="">Semua Tahun</option>' + years.map(y => `<option>${y}</option>`).join('');
+            
+            const classes = [...new Set(db.students.map(s => s.class))].sort();
+            classFilter.innerHTML = '<option value="">Semua Kelas</option>' + classes.map(c => `<option>${c}</option>`).join('');
+            
+            genderFilter.innerHTML = '<option value="">Semua Jantina</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option>';
+
+            populateReportStudentList();
+
+            fieldList.innerHTML = '';
+            const fields = [
+                { key: 'studentName', label: 'Nama Penuh' }, { key: 'idNumber', label: 'No. KP' }, { key: 'gender', label: 'Jantina' }, { key: 'class', label: 'Kelas' }, { key: 'dob', label: 'Tarikh Lahir' }, { key: 'religion', label: 'Agama' }, { key: 'citizenship', label: 'Warganegara' }, { key: 'address', label: 'Alamat' }, { key: 'contactNumber', label: 'No. Telefon' }, { key: 'allergy', label: 'Alahan' }, { key: 'sickness', label: 'Penyakit' }, { key: 'sports', label: 'Sukan' }, { key: 'clubs', label: 'Kelab' }, { key: 'uniforms', label: 'Badan Beruniform' }, { key: 'parentName', label: 'Nama Penjaga' }, { key: 'parentIdNumber', label: 'No. KP Penjaga' }, { key: 'parentContactNumber', label: 'No. Tel Penjaga' }, { key: 'parentAddress', label: 'Alamat Penjaga' }
+            ];
+            fields.forEach(field => {
+                fieldList.innerHTML += `<div><input type="checkbox" id="print-field-${field.key}" data-key="${field.key}" checked class="print-field-check h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="print-field-${field.key}" class="ml-2 text-sm">${field.label}</label></div>`;
+            });
+        }
+
+        function populateReportStudentList() {
+            const studentList = document.getElementById('student-selection-list');
+            if (!studentList) return;
+            
+            const year = document.getElementById('report-year-filter').value;
+            const studentClass = document.getElementById('report-class-filter').value;
+            const gender = document.getElementById('report-gender-filter').value;
+
+            let filteredStudents = db.students.filter(s => {
+                const studentYear = s.offboardDate ? new Date(s.offboardDate).getFullYear() : new Date().getFullYear();
+                const yearMatch = !year || studentYear == year;
+                const classMatch = !studentClass || s.class === studentClass;
+                const genderMatch = !gender || s.gender === gender;
+                return yearMatch && classMatch && genderMatch;
+            });
+
+            studentList.innerHTML = '';
+            filteredStudents.forEach(student => {
+                studentList.innerHTML += `<div><input type="checkbox" id="print-student-${student.id}" data-id="${student.id}" class="print-student-check h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"><label for="print-student-${student.id}" class="ml-2 text-sm">${student.studentName} (${student.class})</label></div>`;
+            });
+        }
+        
+        function printElement(elementId) {
+            const elementToPrint = document.getElementById(elementId);
+            if (!elementToPrint) return;
+            const printSection = document.getElementById('print-section');
+            printSection.innerHTML = elementToPrint.innerHTML;
+            const title = document.createElement('h2');
+            title.className = 'text-2xl font-bold mb-4 text-center';
+            title.textContent = document.getElementById('page-title').textContent;
+            printSection.insertBefore(title, printSection.firstChild);
+            window.print();
+            printSection.innerHTML = '';
+        }
+        
+        function exportToCsv() {
+            const headers = ['ID', 'Nama', 'No. KP', 'Jantina', 'Kelas', 'Agama', 'Tarikh Lahir', 'Warganegara', 'Alamat', 'No. Telefon', 'Alahan', 'Penyakit', 'Sukan', 'Kelab', 'Badan Beruniform', 'Nama Penjaga', 'No. KP Penjaga', 'No. Tel Penjaga', 'Alamat Penjaga'];
+            const rows = db.students.map(s => [s.id, s.studentName, s.idNumber, s.gender, s.class, s.religion, s.dob, s.citizenship, `"${s.address}"`, s.contactNumber, `"${s.allergy.join(', ')}"`, `"${s.sickness.join(', ')}"`, s.sports, s.clubs, s.uniforms, s.parentName, s.parentIdNumber, s.parentContactNumber, `"${s.parentAddress}"`]);
+            let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "senarai_pelajar.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function saveOrgInfo() {
+            document.querySelectorAll('#org-form-container input').forEach(input => {
+                const { key, field } = input.dataset;
+                const member = db.orgMembers.find(m => m.key === key);
+                if (member) {
+                    member[field] = input.value;
+                    if (field === 'end' && input.value && new Date(input.value) < new Date()) {
+                        member.status = 'inactive';
+                    }
+                }
+            });
+            alert('Maklumat organisasi disimpan!');
+            renderOrgForm();
+            renderOrgChart();
+        }
+        
+        function saveContractorInfo() {
+            document.querySelectorAll('#contractor-form input').forEach(input => {
+                const key = input.id.replace('contractor-', '');
+                if (key in db.contractorInfo) db.contractorInfo[key] = input.value;
+            });
+            alert('Maklumat kontraktor disimpan!');
+        }
+        
+        function checkContractorExpiry() {
+            const endDate = db.contractorInfo.endDate;
+            if (!endDate) return;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const expiryDate = new Date(endDate);
+            if (today > expiryDate) {
+                setTimeout(() => {
+                    const archiveAndNew = confirm(`Kontrak untuk ${db.contractorInfo.companyName} telah tamat. Arkibkan dan masukkan kontraktor baru?`);
+                    if (archiveAndNew) {
+                        db.archivedContractors.push({ ...db.contractorInfo });
+                        Object.keys(db.contractorInfo).forEach(key => db.contractorInfo[key] = '');
+                        renderContractorForm();
+                        alert('Kontraktor lama diarkibkan. Sila masukkan maklumat baru.');
+                        navigateTo('contractor');
+                    }
+                }, 1000);
+            }
+        }
+        
+        function toggleOrgArchive(button) {
+            const activeView = document.getElementById('active-org-view');
+            const archiveView = document.getElementById('archive-org-view');
+            const isActive = !activeView.classList.contains('hidden');
+            activeView.classList.toggle('hidden', isActive);
+            archiveView.classList.toggle('hidden', !isActive);
+            button.innerHTML = isActive ? '<i class="fas fa-eye mr-2"></i>Lihat Aktif' : '<i class="fas fa-archive mr-2"></i>Lihat Arkib';
+            if (!isActive) renderOrgArchiveTable();
+        }
+        
+        function toggleContractorArchive(button) {
+            const activeView = document.getElementById('active-contractor-view');
+            const archiveView = document.getElementById('archive-contractor-view');
+            const isActive = !activeView.classList.contains('hidden');
+            activeView.classList.toggle('hidden', isActive);
+            archiveView.classList.toggle('hidden', !isActive);
+            button.innerHTML = isActive ? '<i class="fas fa-eye mr-2"></i>Lihat Aktif' : '<i class="fas fa-archive mr-2"></i>Lihat Arkib';
+            if (!isActive) renderContractorArchive();
+        }
+        
+        function clearAllPrintCheckboxes() {
+            document.querySelectorAll('.print-student-check').forEach(cb => cb.checked = false);
+            document.getElementById('select-all-students-print').checked = false;
+        }
+
+        function openStudentModal(studentId = null) {
+            const modal = document.getElementById('student-modal');
+            const form = document.getElementById('student-form');
+            form.reset();
+            document.getElementById('student-id').value = '';
+            
+            // Populate dropdowns
+            const genderSelect = document.getElementById('gender');
+            genderSelect.innerHTML = `<option value="">Pilih...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option>`;
+            
+            const religionSelect = document.getElementById('religion');
+            religionSelect.innerHTML = `<option value="">Pilih...</option><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Tiada Agama</option><option>Lain-lain</option>`;
+
+            const citizenshipSelect = document.getElementById('citizenship');
+            citizenshipSelect.innerHTML = `<option value="">Pilih...</option><option>Warganegara Malaysia</option><option>Pemastautin Tetap</option><option>Bukan Warganegara</option>`;
+
+            const classSelect = document.getElementById('class');
+            classSelect.innerHTML = '<option value="">Pilih...</option>';
+            for (let i = 1; i <= 6; i++) {
+                classSelect.innerHTML += `<option>${i} Cemerlang</option><option>${i} Gemilang</option>`;
+            }
+
+            if (studentId) {
+                const student = db.students.find(s => s.id === studentId);
+                if (student) {
+                    document.getElementById('modal-title').textContent = 'Kemaskini Maklumat Pelajar';
+                    document.getElementById('student-id').value = student.id;
+                    document.getElementById('studentName').value = student.studentName;
+                    document.getElementById('gender').value = student.gender;
+                    document.getElementById('class').value = student.class;
+                    // ... populate all other fields
+                }
+            } else {
+                document.getElementById('modal-title').textContent = 'Tambah Pelajar Baru';
+            }
+            modal.classList.add('active');
+        }
+        
+        function closeStudentModal() {
+            const modal = document.getElementById('student-modal');
+            modal.classList.remove('active');
+        }
+
+        // --- INITIALIZATION ---
+        function initialize() {
+            loadTemplates();
+            
+            const appContainer = document.getElementById('app');
+            if (isGuest) {
+                appContainer.classList.add('disabled-ui');
+            } else {
+                appContainer.classList.remove('disabled-ui');
+            }
+            
+            navigateTo('dashboard');
+            translateUI(currentLanguage);
+            if (!isGuest) {
+                checkContractorExpiry();
+            }
+        }
+        
+        // --- EVENT LISTENERS ---
+        loginForm.addEventListener('submit', handleLogin);
+        guestLoginBtn.addEventListener('click', handleGuestLogin);
+        logoutButton.addEventListener('click', handleLogout);
+        langSwitcher.addEventListener('click', () => translateUI(currentLanguage === 'bm' ? 'en' : 'bm'));
+        
+        Object.keys(navLinks).forEach(key => {
+            if(navLinks[key]) navLinks[key].addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo(key);
+            });
+        });
+        
+        contentDiv.addEventListener('click', (e) => {
+            const target = e.target;
+            const targetId = target.id;
+            const targetClassList = target.classList;
+
+            if (targetId === 'save-org-btn') saveOrgInfo();
+            if (targetId === 'save-contractor-btn') saveContractorInfo();
+            if (targetId === 'print-org-btn') printElement('org-chart-display');
+            if (targetId === 'print-contractor-btn') printElement('contractor-form');
+            if (targetId === 'toggle-org-archive-btn') toggleOrgArchive(target);
+            if (targetId === 'toggle-contractor-archive-btn') toggleContractorArchive(target);
+            if (targetId === 'clear-all-students-print') clearAllPrintCheckboxes();
+            if (targetId === 'export-csv-btn') exportToCsv();
+            if (targetId === 'add-student-btn') openStudentModal();
+            
+            const editBtn = target.closest('.edit-btn');
+            if (editBtn) {
+                const studentId = parseInt(editBtn.dataset.id);
+                openStudentModal(studentId);
+            }
+
+            if (targetClassList.contains('reject-user-btn')) {
+                const userEntry = target.closest('.user-entry');
+                const statusSpan = userEntry.querySelector('.user-status');
+                statusSpan.textContent = 'Ditolak';
+                statusSpan.className = 'user-status text-red-600 font-medium';
+                target.closest('.user-actions').innerHTML = `<span class="text-sm text-gray-500">Tindakan diambil</span>`;
+            }
+            if (targetClassList.contains('approve-user-btn')) {
+                const userEntry = target.closest('.user-entry');
+                const statusSpan = userEntry.querySelector('.user-status');
+                statusSpan.textContent = 'Disahkan';
+                statusSpan.className = 'user-status text-green-600 font-medium';
+                target.closest('.user-actions').innerHTML = `<span class="text-sm text-gray-500">Tindakan diambil</span>`;
+            }
+        });
+        
+        contentDiv.addEventListener('change', (e) => {
+            if (['report-year-filter', 'report-class-filter', 'report-gender-filter'].includes(e.target.id)) {
+                populateReportStudentList();
+            }
+        });
+
+        modalContainer.addEventListener('click', (e) => {
+            if (e.target.id === 'close-modal-btn' || e.target.id === 'cancel-btn') {
+                closeStudentModal();
+            }
+        });
+
+    });
+    </script>
+</body>
+</html>
