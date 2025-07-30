@@ -337,8 +337,8 @@
         }
 
         function handleGuestLogin() {
-            const password = prompt('Sila masukkan kata laluan tetamu (admin):');
-            if (password === 'admin') {
+            const password = prompt('Sila masukkan kata laluan tetamu (Ybb4412.@):');
+            if (password === 'Ybb4412.@') {
                 isGuest = true;
                 loginPage.classList.add('hidden');
                 appPage.classList.remove('hidden');
@@ -540,7 +540,6 @@
             const fieldList = document.getElementById('field-selection-list');
             if (!studentList || !fieldList) return;
             
-            // Populate filters
             const yearFilter = document.getElementById('report-year-filter');
             const classFilter = document.getElementById('report-class-filter');
             const genderFilter = document.getElementById('report-gender-filter');
@@ -687,7 +686,6 @@
             form.reset();
             document.getElementById('student-id').value = '';
             
-            // Populate dropdowns
             const genderSelect = document.getElementById('gender');
             genderSelect.innerHTML = `<option value="">Pilih...</option><option value="Lelaki">Lelaki</option><option value="Perempuan">Perempuan</option>`;
             
@@ -711,7 +709,16 @@
                     document.getElementById('studentName').value = student.studentName;
                     document.getElementById('gender').value = student.gender;
                     document.getElementById('class').value = student.class;
-                    // ... populate all other fields
+                    document.getElementById('religion').value = student.religion;
+                    document.getElementById('idNumber').value = student.idNumber;
+                    document.getElementById('dob').value = student.dob;
+                    document.getElementById('citizenship').value = student.citizenship;
+                    document.getElementById('address').value = student.address;
+                    document.getElementById('contactNumber').value = student.contactNumber;
+                    document.getElementById('parentName').value = student.parentName;
+                    document.getElementById('parentIdNumber').value = student.parentIdNumber;
+                    document.getElementById('parentContactNumber').value = student.parentContactNumber;
+                    document.getElementById('parentAddress').value = student.parentAddress;
                 }
             } else {
                 document.getElementById('modal-title').textContent = 'Tambah Pelajar Baru';
@@ -801,6 +808,34 @@
         modalContainer.addEventListener('click', (e) => {
             if (e.target.id === 'close-modal-btn' || e.target.id === 'cancel-btn') {
                 closeStudentModal();
+            }
+        });
+        
+        modalContainer.addEventListener('input', (e) => {
+            if (e.target.id === 'idNumber') {
+                const idNumber = e.target.value;
+                const dobInput = document.getElementById('dob');
+                const citizenshipSelect = document.getElementById('citizenship');
+
+                if (/^\d{12}$/.test(idNumber)) {
+                    const year = parseInt(idNumber.substring(0, 2));
+                    const month = parseInt(idNumber.substring(2, 4)) - 1;
+                    const day = parseInt(idNumber.substring(4, 6));
+                    const currentCentury = new Date().getFullYear().toString().substring(0, 2);
+                    const fullYear = (year < (new Date().getFullYear() % 100) ? 2000 : 1900) + year;
+                    
+                    const date = new Date(fullYear, month, day);
+                    const monthNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+                    dobInput.value = `${day} ${monthNames[date.getMonth()]} ${fullYear}`;
+                } else {
+                    dobInput.value = '';
+                }
+
+                if (idNumber && idNumber.toUpperCase() !== 'TIADA') {
+                    citizenshipSelect.value = 'Warganegara Malaysia';
+                } else {
+                    citizenshipSelect.value = '';
+                }
             }
         });
 
