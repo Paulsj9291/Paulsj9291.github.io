@@ -317,7 +317,13 @@
                 this.currentView = 'login_selection';
                 this.currentUser = { role: '', name: '' };
             },
-            
+            // --- TAMBAH KOD INI DI BAWAH ---
+            logout() {
+                this.goHome();
+            },
+            // -------------------------------
+
+            // ... kod generateClassList ...
             // --- LOGIK GENERATE KELAS ---
             generateClassList() {
                 const years = ['1', '2', '3', '4', '5', '6'];
@@ -561,5 +567,6 @@
 </script>
 </body>
 </html>
+
 
 
