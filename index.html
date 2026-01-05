@@ -263,7 +263,8 @@
 
 <script>
     // --- GANTIKAN URL INI DENGAN URL BARU (YANG "ANYONE" ACCESS) ---
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbymnvUZXsy55gBVmjyiVExWEn44JTtdVm3fq63sbpgdzBviLeAJyZPm6AXPt3kJOZ6T/exec'; 
+    // Pastikan anda melakukan New Deployment seperti Langkah 1
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzA_ZztsVgvzhelQo2T5CraHuPAL57SSq6wuvCHVREFQBOw9u5ScVTLYoNKlCKWThI/exec'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -299,8 +300,10 @@
                 this.currentView = 'login_selection';
                 this.currentUser = { role: '', name: '' };
             },
+            
+            // --- FUNGSI LOGOUT YANG HILANG SEBELUM INI ---
             logout() {
-                this.goHome(); // Ini membaiki ralat "logout is not defined"
+                this.goHome(); 
             },
             
             generateClassList() {
