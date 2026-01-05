@@ -13,7 +13,6 @@
     <style>
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Modal Transition */
         .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
         .modal-enter-from, .modal-leave-to { opacity: 0; }
     </style>
@@ -22,53 +21,36 @@
 
 <div id="app" class="flex flex-col min-h-screen relative">
 
-    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-        <div class="bg-white p-5 rounded-lg flex items-center gap-3 shadow-xl">
-            <div class="loader"></div>
-            <span class="font-semibold text-gray-700">Sedang memproses...</span>
-        </div>
+    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-[60]">
+        <div class="loader mb-4"></div>
+        <span class="font-semibold text-white text-lg">{{ loadingText }}</span>
+        <span class="text-sm text-gray-300 mt-2">Sila tunggu, proses ini mungkin mengambil masa...</span>
     </div>
 
     <transition name="modal">
-        <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div class="bg-blue-900 text-white p-4 flex justify-between items-center sticky top-0">
-                    <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2"></i>Kemaskini Maklumat Pelajar</h3>
-                    <button @click="closeEditModal" class="hover:text-red-300"><i class="fa-solid fa-times text-xl"></i></button>
-                </div>
+        <div v-if="showDocModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="font-bold text-lg mb-4 text-blue-900 border-b pb-2">Dokumen Sokongan</h3>
+                <p class="text-sm text-gray-600 mb-4">Pelajar: <b>{{ selectedDocStudent.nama }}</b></p>
                 
-                <form @submit.prevent="submitEdit" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="col-span-2 bg-blue-50 p-3 rounded border"><h4 class="font-bold text-blue-800 text-xs mb-2">PELAJAR</h4>
-                        <div class="grid md:grid-cols-2 gap-3">
-                            <input v-model="editForm.nama" placeholder="Nama Penuh" class="border p-2 rounded text-sm uppercase col-span-2">
-                            <input v-model="editForm.ic" placeholder="No. ID" class="border p-2 rounded text-sm">
-                            <input v-model="editForm.kelas" placeholder="Kelas" class="border p-2 rounded text-sm">
-                            <select v-model="editForm.jantina" class="border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
-                            <input v-model="editForm.agama" placeholder="Agama" class="border p-2 rounded text-sm">
-                        </div>
-                        <textarea v-model="editForm.alamat" placeholder="Alamat" rows="2" class="w-full border p-2 rounded text-sm mt-2"></textarea>
-                    </div>
+                <div class="space-y-3">
+                    <a :href="selectedDocStudent.urlGambar" target="_blank" v-if="selectedDocStudent.urlGambar" class="block w-full text-center bg-blue-50 text-blue-700 py-2 rounded hover:bg-blue-100 border border-blue-200">
+                        <i class="fa-solid fa-image mr-2"></i> Lihat Gambar Pasport
+                    </a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded border border-gray-200 text-sm">Tiada Gambar Pasport</span>
 
-                    <div class="col-span-2 bg-gray-50 p-3 rounded border"><h4 class="font-bold text-gray-800 text-xs mb-2">WARIS</h4>
-                        <div class="grid md:grid-cols-2 gap-3">
-                            <input v-model="editForm.namaBapa" placeholder="Nama Bapa" class="border p-2 rounded text-sm uppercase">
-                            <input v-model="editForm.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
-                            <input v-model="editForm.noTel" placeholder="No. Tel" class="border p-2 rounded text-sm col-span-2">
-                        </div>
-                    </div>
+                    <a :href="selectedDocStudent.urlSijil" target="_blank" v-if="selectedDocStudent.urlSijil" class="block w-full text-center bg-green-50 text-green-700 py-2 rounded hover:bg-green-100 border border-green-200">
+                        <i class="fa-solid fa-file-alt mr-2"></i> Lihat Sijil Lahir
+                    </a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded border border-gray-200 text-sm">Tiada Sijil Lahir</span>
 
-                    <div class="col-span-2 bg-red-50 p-3 rounded border"><h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4>
-                        <div class="grid md:grid-cols-2 gap-3">
-                            <input v-model="editForm.penyakit" placeholder="Penyakit" class="border p-2 rounded text-sm">
-                            <input v-model="editForm.alahan" placeholder="Alahan" class="border p-2 rounded text-sm">
-                        </div>
-                    </div>
+                    <a :href="selectedDocStudent.urlIC" target="_blank" v-if="selectedDocStudent.urlIC" class="block w-full text-center bg-purple-50 text-purple-700 py-2 rounded hover:bg-purple-100 border border-purple-200">
+                        <i class="fa-solid fa-id-card mr-2"></i> Lihat IC Waris
+                    </a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded border border-gray-200 text-sm">Tiada Salinan IC</span>
+                </div>
 
-                    <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
-                        <button type="button" @click="closeEditModal" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Simpan Perubahan</button>
-                    </div>
-                </form>
+                <button @click="showDocModal = false" class="mt-6 w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">Tutup</button>
             </div>
         </div>
     </transition>
@@ -106,7 +88,6 @@
                     <h3 class="text-xl font-bold mb-4 text-center text-green-800"><i class="fa-solid fa-users mr-2"></i>Ibu Bapa / Penjaga</h3>
                     <form @submit.prevent="parentCheck" class="space-y-3">
                         <input v-model="parentSearchIC" type="text" placeholder="No. MyKid / Sijil Lahir Anak" class="w-full border p-2 rounded">
-                        <p class="text-xs text-gray-400">Contoh: 130525-13-0541 atau SK 57743</p>
                         <button type="submit" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 font-bold">Semak Status</button>
                     </form>
                 </div>
@@ -116,25 +97,18 @@
         <div v-if="currentView === 'admin_dashboard'">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-                    <p class="text-xs font-bold text-gray-500">BARU</p>
-                    <p class="text-2xl font-bold">{{ newApplicants.length }}</p>
+                    <p class="text-xs font-bold text-gray-500">BARU</p><p class="text-2xl font-bold">{{ newApplicants.length }}</p>
                 </div>
                 <div class="bg-white p-4 rounded shadow border-l-4 border-green-500">
-                    <p class="text-xs font-bold text-gray-500">DITERIMA</p>
-                    <p class="text-2xl font-bold">{{ existingStudents.length }}</p>
-                </div>
-                <div class="bg-white p-4 rounded shadow border-l-4 border-yellow-500">
-                    <p class="text-xs font-bold text-gray-500">KIV</p>
-                    <p class="text-2xl font-bold">{{ kivStudents.length }}</p>
+                    <p class="text-xs font-bold text-gray-500">DITERIMA</p><p class="text-2xl font-bold">{{ existingStudents.length }}</p>
                 </div>
                 <div class="bg-white p-4 rounded shadow cursor-pointer hover:bg-blue-50" @click="fetchStudents">
-                    <p class="text-xs font-bold text-gray-500">DATABASE</p>
-                    <p class="text-sm font-bold text-blue-600 mt-1"><i class="fa-solid fa-rotate mr-1"></i> Refresh</p>
+                    <p class="text-xs font-bold text-gray-500">DATABASE</p><p class="text-sm font-bold text-blue-600 mt-1"><i class="fa-solid fa-rotate mr-1"></i> Refresh</p>
                 </div>
             </div>
 
             <div class="flex border-b mb-4 overflow-x-auto">
-                <button @click="activeTab = 'new'" :class="activeTab === 'new' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-inbox mr-2"></i>Permohonan Baru</button>
+                <button @click="activeTab = 'new'" :class="activeTab === 'new' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-inbox mr-2"></i>Permohonan</button>
                 <button @click="activeTab = 'current'" :class="activeTab === 'current' ? 'border-green-600 text-green-600 bg-green-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-users mr-2"></i>Pelajar Semasa</button>
                 <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'border-purple-600 text-purple-600 bg-purple-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i>Daftar Baru</button>
             </div>
@@ -143,10 +117,10 @@
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead :class="activeTab === 'new' ? 'bg-blue-50' : 'bg-green-50'">
                         <tr>
-                            <th class="px-4 py-2 text-left">Pelajar</th>
-                            <th class="px-4 py-2 text-left">Waris</th>
-                            <th class="px-4 py-2 text-left">Info</th>
-                            <th class="px-4 py-2 text-left w-48">Tindakan</th>
+                            <th class="px-4 py-2">Pelajar</th>
+                            <th class="px-4 py-2">Info</th>
+                            <th class="px-4 py-2">Dokumen</th>
+                            <th class="px-4 py-2">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -161,29 +135,20 @@
                                 <div class="font-mono text-xs">{{ std.noTel }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span v-if="activeTab === 'current'" class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">AKTIF</span>
-                                <span v-else class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold">BARU</span>
-                                <div v-if="std.penyakit !== 'Tiada'" class="text-red-600 text-[10px] mt-1 font-bold">! Sakit</div>
+                                <button @click="openDocModal(std)" class="text-blue-600 hover:text-blue-800 text-xs border border-blue-200 bg-blue-50 px-2 py-1 rounded flex items-center gap-1">
+                                    <i class="fa-solid fa-folder-open"></i> Lihat
+                                </button>
                             </td>
-                            <td class="px-4 py-3 space-y-2">
-                                <div class="flex gap-2 mb-2">
-                                    <button @click="openEditModal(std)" class="text-gray-600 hover:text-blue-600 border border-gray-300 px-2 py-1 rounded text-xs flex items-center gap-1">
-                                        <i class="fa-solid fa-pen"></i> Edit
-                                    </button>
-                                    <button v-if="std.status === 'Diterima'" @click="printLetter(std)" class="text-gray-600 hover:text-green-600 border border-gray-300 px-2 py-1 rounded text-xs flex items-center gap-1">
-                                        <i class="fa-solid fa-print"></i> Cetak
-                                    </button>
+                            <td class="px-4 py-3">
+                                <div v-if="activeTab === 'new'" class="flex gap-1">
+                                    <button @click="updateStatus(std, 'Diterima')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px]">Lulus</button>
+                                    <button @click="updateStatus(std, 'Simpanan')" class="bg-yellow-500 text-white px-2 py-1 rounded text-[10px]">KIV</button>
+                                    <button @click="updateStatus(std, 'Ditolak')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px]">Tolak</button>
                                 </div>
-                                
-                                <div v-if="activeTab === 'new'" class="flex gap-1 border-t pt-2">
-                                    <button @click="updateStatus(std, 'Diterima')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] hover:bg-green-700">Lulus</button>
-                                    <button @click="updateStatus(std, 'Simpanan')" class="bg-yellow-500 text-white px-2 py-1 rounded text-[10px] hover:bg-yellow-600">KIV</button>
-                                    <button @click="updateStatus(std, 'Ditolak')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] hover:bg-red-700">Tolak</button>
+                                <div v-else class="flex gap-1">
+                                    <button @click="printLetter(std)" class="text-gray-600 hover:text-green-600 border border-gray-300 px-2 py-1 rounded text-xs"><i class="fa-solid fa-print"></i></button>
                                 </div>
                             </td>
-                        </tr>
-                        <tr v-if="(activeTab === 'new' ? newApplicants : existingStudents).length === 0">
-                            <td colspan="4" class="p-8 text-center text-gray-500">Tiada rekod dijumpai.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -195,9 +160,9 @@
                     <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="new"> <span>Permohonan Baru</span></label>
                     <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="existing"> <span class="font-bold text-green-700">Pelajar Lama (Terus Diterima)</span></label>
                 </div>
-                <form @submit.prevent="submitStudent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <form @submit.prevent="handleFormSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input v-model="form.nama" placeholder="NAMA PENUH" required class="border p-2 rounded text-sm uppercase col-span-2">
-                    <input v-model="form.ic" @blur="autoDetectGender('form')" placeholder="No. ID" required class="border p-2 rounded text-sm">
+                    <input v-model="form.ic" @blur="autoDetectGender" placeholder="No. ID" required class="border p-2 rounded text-sm">
                     <div class="flex gap-2">
                         <select v-model="form.kelas" class="w-1/2 border p-2 rounded text-sm"><option value="" disabled>Kelas</option><option v-for="c in generatedClasses" :value="c">{{ c }}</option></select>
                         <select v-model="form.jantina" class="w-1/2 border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
@@ -207,13 +172,35 @@
                     
                     <div class="col-span-2 border-t pt-2 mt-2 font-bold text-xs text-gray-500">WARIS</div>
                     <input v-model="form.namaBapa" placeholder="Nama Bapa" required class="border p-2 rounded text-sm uppercase">
+                    <input v-model="form.icBapa" placeholder="No. KP Bapa" class="border p-2 rounded text-sm">
                     <input v-model="form.noTel" placeholder="No. Tel" required class="border p-2 rounded text-sm">
                     
-                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-2 rounded mt-2">Simpan Data</button>
+                    <div class="col-span-2 border-t pt-2 mt-2">
+                        <h4 class="font-bold text-sm text-blue-800 mb-2">Muat Naik Dokumen (Wajib)</h4>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div class="border border-dashed border-gray-400 p-3 rounded bg-gray-50 text-center">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Gambar Pasport</label>
+                                <input type="file" @change="handleFile($event, 'fileGambar')" accept="image/*" class="text-xs w-full">
+                            </div>
+                            <div class="border border-dashed border-gray-400 p-3 rounded bg-gray-50 text-center">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Salinan Sijil Lahir</label>
+                                <input type="file" @change="handleFile($event, 'fileSijil')" accept="image/*,application/pdf" class="text-xs w-full">
+                            </div>
+                            <div class="border border-dashed border-gray-400 p-3 rounded bg-gray-50 text-center">
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Salinan IC Waris</label>
+                                <input type="file" @change="handleFile($event, 'fileIC')" accept="image/*,application/pdf" class="text-xs w-full">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-red-500 mt-1">* Saiz maksimum setiap fail: 2MB</p>
+                    </div>
+
+                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-3 rounded mt-2 hover:bg-blue-700">
+                        <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simpan & Muat Naik
+                    </button>
                 </form>
             </div>
         </div>
-
+        
         <div v-if="currentView === 'parent_result'" class="flex justify-center">
             <div class="bg-white w-full max-w-2xl p-8 rounded shadow-xl border-t-8 border-blue-900">
                 <div class="text-center mb-6">
@@ -234,8 +221,8 @@
 </div>
 
 <script>
-    // --- MASUKKAN URL GOOGLE APPS SCRIPT BARU ANDA DI SINI ---
-    const GAS_URL = 'LETAKKAN_URL_GOOGLE_SCRIPT_ANDA_DISINI'; 
+    // --- GANTIKAN URL GOOGLE APPS SCRIPT BARU ---
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxoOGPQ5vIiYb8E7kjOPm1EbmaCIiGK0XqSQ7Sw8n5OcChazNqSJ5VKYtAJQAwnb_Uy/exec'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -244,24 +231,22 @@
         data() {
             return {
                 currentView: 'login_selection',
-                activeTab: 'new', 
+                activeTab: 'new',
                 isLoading: false,
-                showEditModal: false,
+                loadingText: 'Sedang memproses...',
+                showDocModal: false,
                 
                 loginForm: { id: '', pass: '' },
                 currentUser: { role: '', name: '' },
                 parentSearchIC: '',
                 students: [],
                 selectedStudent: null,
+                selectedDocStudent: null, // Utk modal view doc
                 
-                // Form Daftar Baru
                 entryType: 'new',
                 form: { nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' },
+                files: { fileGambar: null, fileSijil: null, fileIC: null }, // Store raw files
                 
-                // Form Edit
-                originalEditIC: '', // Untuk simpan ID asal bagi carian backend
-                editForm: { nama: '', ic: '', kelas: '', jantina: '', agama: '', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: '', penyakit: '' },
-
                 generatedClasses: []
             }
         },
@@ -272,7 +257,7 @@
         },
         mounted() { this.generateClassList(); },
         methods: {
-            goHome() { this.currentView = 'login_selection'; this.currentUser = { role: '', name: '' }; },
+            goHome() { this.currentView = 'login_selection'; },
             logout() { this.goHome(); },
             generateClassList() {
                 const years = ['1', '2', '3', '4', '5', '6'];
@@ -280,79 +265,119 @@
                 this.generatedClasses = [];
                 years.forEach(y => { names.forEach(n => { this.generatedClasses.push(`${y} ${n}`); }); });
             },
-            autoDetectGender(target) {
-                const source = target === 'form' ? this.form : this.editForm;
-                const ic = source.ic.replace(/[^0-9]/g, '');
+            autoDetectGender() {
+                const ic = this.form.ic.replace(/[^0-9]/g, '');
                 if (ic.length === 12) {
-                    source.jantina = (parseInt(ic.slice(-1)) % 2 !== 0) ? 'Lelaki' : 'Perempuan';
+                    this.form.jantina = (parseInt(ic.slice(-1)) % 2 !== 0) ? 'Lelaki' : 'Perempuan';
                 }
             },
-
-            // --- EDIT MODAL LOGIC ---
-            openEditModal(std) {
-                this.originalEditIC = std.ic; // Simpan IC asal
-                this.editForm = { ...std }; // Clone data ke form edit
-                this.showEditModal = true;
-            },
-            closeEditModal() { this.showEditModal = false; },
             
-            async submitEdit() {
-                this.isLoading = true;
-                const params = new URLSearchParams();
-                params.append('action', 'updateStudent');
-                params.append('original_ic', this.originalEditIC);
-                
-                // Append semua field editForm
-                for (const key in this.editForm) {
-                    params.append(key, this.editForm[key]);
+            // --- FILE HANDLING ---
+            handleFile(event, key) {
+                const file = event.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) { // 2MB Limit
+                        alert('Fail terlalu besar! Sila guna fail bawah 2MB.');
+                        event.target.value = ""; // Reset
+                        return;
+                    }
+                    this.files[key] = file;
                 }
+            },
+            
+            // Convert file to Base64
+            toBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]); // Get just base64 data
+                    reader.onerror = error => reject(error);
+                });
+            },
 
+            // --- UPLOAD & SUBMIT FLOW ---
+            async handleFormSubmit() {
+                this.isLoading = true;
+                this.loadingText = "Sedang memuat naik dokumen...";
+                
+                // 1. Upload Files sequentially and get URLs
+                let urlGambar = '', urlSijil = '', urlIC = '';
+                
                 try {
+                    if (this.files.fileGambar) urlGambar = await this.uploadSingleFile(this.files.fileGambar, `Gambar_${this.form.nama}`);
+                    if (this.files.fileSijil) urlSijil = await this.uploadSingleFile(this.files.fileSijil, `Sijil_${this.form.nama}`);
+                    if (this.files.fileIC) urlIC = await this.uploadSingleFile(this.files.fileIC, `ICWaris_${this.form.nama}`);
+                    
+                    this.loadingText = "Menyimpan data pelajar...";
+                    
+                    // 2. Submit Data with URLs
+                    const params = new URLSearchParams();
+                    params.append('action', 'insert');
+                    for (const key in this.form) params.append(key, this.form[key]);
+                    params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
+                    
+                    params.append('urlGambar', urlGambar);
+                    params.append('urlSijil', urlSijil);
+                    params.append('urlIC', urlIC);
+
                     await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
-                    alert('Maklumat berjaya dikemaskini!');
-                    this.closeEditModal();
-                    setTimeout(() => { this.fetchStudents(); }, 1500); // Refresh data
+                    
+                    alert('Data & Dokumen Berjaya Disimpan!');
+                    this.form = { nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' };
+                    this.files = { fileGambar: null, fileSijil: null, fileIC: null };
+                    
+                    setTimeout(() => { this.fetchStudents(); this.activeTab = this.entryType === 'existing' ? 'current' : 'new'; }, 2000);
+
                 } catch (e) {
-                    alert('Ralat update: ' + e.message);
+                    alert('Ralat: ' + e.message);
                 } finally {
                     this.isLoading = false;
                 }
             },
 
-            // --- API CONNECT ---
+            async uploadSingleFile(file, newName) {
+                const base64 = await this.toBase64(file);
+                const params = new URLSearchParams();
+                params.append('action', 'upload');
+                params.append('base64', base64);
+                params.append('mimeType', file.type);
+                params.append('filename', newName);
+
+                const res = await fetch(GAS_URL, { method: 'POST', body: params });
+                const json = await res.json();
+                
+                if (json.result === 'success') {
+                    return json.url;
+                } else {
+                    throw new Error('Gagal muat naik fail');
+                }
+            },
+            
+            // --- DATA FUNCTIONS ---
             async fetchStudents() {
-                if (GAS_URL.includes('LETAKKAN')) { alert('Sila masukkan URL Google Script!'); return; }
-                this.isLoading = true;
+                if (GAS_URL.includes('LETAKKAN')) { alert('Masukkan URL Script!'); return; }
+                this.isLoading = true; this.loadingText = "Memuat turun data...";
                 try {
                     const res = await fetch(GAS_URL + '?action=read');
                     const json = await res.json();
-                    if (json.result === 'success') { this.students = json.data; }
+                    if (json.result === 'success') this.students = json.data;
                 } catch (e) { console.error(e); } finally { this.isLoading = false; }
-            },
-
-            async submitStudent() {
-                this.isLoading = true;
-                const params = new URLSearchParams();
-                params.append('action', 'insert');
-                for (const key in this.form) params.append(key, this.form[key]);
-                params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
-
-                try {
-                    await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
-                    alert('Data disimpan!');
-                    this.form = { nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' };
-                    setTimeout(() => { this.fetchStudents(); this.activeTab = this.entryType === 'existing' ? 'current' : 'new'; }, 2000);
-                } catch (e) { alert('Ralat: ' + e.message); } finally { this.isLoading = false; }
             },
 
             async updateStatus(std, newStatus) {
                 if(!confirm(`Tukar status ${std.nama} kepada ${newStatus}?`)) return;
-                this.isLoading = true;
+                this.isLoading = true; this.loadingText = "Mengemaskini status...";
                 try {
                     await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`, { mode: 'no-cors' });
                     std.status = newStatus;
                     setTimeout(() => { this.fetchStudents(); }, 1000);
                 } catch (e) { console.error(e); } finally { this.isLoading = false; }
+            },
+
+            // --- ADMIN VIEW DOCS ---
+            openDocModal(std) {
+                this.selectedDocStudent = std;
+                this.showDocModal = true;
             },
 
             async adminLogin() {
@@ -370,49 +395,33 @@
                 if (found) { this.selectedStudent = found; this.currentView = 'parent_result'; } else { alert('Rekod tiada.'); }
             },
 
-            // --- PRINT FUNCTION ---
             printLetter(std) {
                 const doc = new jsPDF();
-                
                 doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 15, null, null, "center");
-                doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 20, null, null, "center");
-                doc.text("YBB 4412 | Tel: 085-737-005", 105, 25, null, null, "center");
-                doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
-
-                doc.text(`Ruj: SKBN.T.700-10/2/1`, 140, 40);
-                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 45);
-                
-                doc.text(std.namaBapa, 20, 50);
-                doc.text(std.alamat || '', 20, 55);
-
-                let y = 75;
-                doc.setFont("helvetica", "bold");
-                doc.text("TAWARAN MASUK KE ASRAMA SK BATU NIAH", 20, y);
-                doc.setLineWidth(0.2); doc.line(20, y+2, 120, y+2);
-
-                y += 10;
+                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 20, null, null, "center");
+                doc.setFontSize(10);
                 doc.setFont("helvetica", "normal");
-                const body = `Sukacita dimaklumkan bahawa anak jagaan Tuan/Puan, ${std.nama} (${std.ic}) dari kelas ${std.kelas} telah ditawarkan menduduki asrama bagi sesi tahun ini.`;
-                doc.text(doc.splitTextToSize(body, 170), 20, y);
+                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 26, null, null, "center");
+                doc.text("Tel: 085-737-005 | E-mel: skbatuniah@gmail.com", 105, 31, null, null, "center");
+                doc.setLineWidth(0.5); doc.line(20, 35, 190, 35);
                 
-                y += 20;
-                const contact = "Sila hubungi Warden Asrama (011-6488-2868) atau Penyelia Asrama (0111-586-4913) untuk pertanyaan lanjut.";
-                doc.text(doc.splitTextToSize(contact, 170), 20, y);
+                doc.text(`Ruj: SKBN.T.700-10/2/1`, 140, 45);
+                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 50);
+                
+                doc.text(std.namaBapa || "Ibu Bapa/Penjaga", 20, 55);
+                doc.text(std.alamat || "Alamat", 20, 60);
 
-                y += 20;
-                doc.text("Sekian, terima kasih.", 20, y);
-                
-                y += 15;
                 doc.setFont("helvetica", "bold");
-                doc.text('"BERKHIDMAT UNTUK NEGARA"', 20, y);
-                
-                y += 20;
+                doc.text("TAWARAN MASUK KE ASRAMA", 20, 80);
                 doc.setFont("helvetica", "normal");
-                doc.text("(GURU BESAR)", 20, y);
-                doc.text("SK Batu Niah", 20, y+5);
-
+                const text = `Sukacita dimaklumkan bahawa anak tuan/puan, ${std.nama} (${std.ic}), telah berjaya ditawarkan tempat di asrama SK Batu Niah.`;
+                doc.text(doc.splitTextToSize(text, 170), 20, 90);
+                
+                doc.text("Sila bawa surat ini semasa hari pendaftaran.", 20, 110);
+                
+                doc.setFont("helvetica", "bold");
+                doc.text("GURU BESAR", 20, 140);
+                doc.text("SK Batu Niah", 20, 145);
                 doc.autoPrint();
                 window.open(doc.output('bloburl'), '_blank');
             }
