@@ -26,13 +26,13 @@
         <span class="font-semibold text-white text-lg">{{ loadingText }}</span>
     </div>
 
-    <transition name="modal"><div v-if="showPromoteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 class="font-bold text-lg mb-4 text-blue-900">Naik Kelas</h3><div class="bg-blue-50 p-3 rounded mb-4 text-sm"><p>Pelajar: <b>{{ promoteData.nama }}</b></p><p>Kelas Semasa: <b>{{ promoteData.currentClass }}</b></p></div><div v-if="promoteData.isGraduating" class="p-4 bg-green-100 border border-green-300 rounded text-center text-green-800 font-bold">Tamat Darjah 6</div><div v-else><label class="block text-xs font-bold text-gray-600 mb-2">Kelas Baru ({{ promoteData.nextYearVal }}):</label><select v-model="promoteData.selectedClassType" class="w-full border p-2 rounded"><option value="Cemerlang">Cemerlang</option><option value="Gemilang">Gemilang</option></select></div><div class="flex justify-end gap-2 mt-4"><button @click="showPromoteModal=false" class="px-4 py-2 text-gray-500 bg-gray-100 rounded">Batal</button><button @click="confirmPromote" class="px-4 py-2 bg-blue-600 text-white rounded">Sahkan</button></div></div></div></transition>
-
+    <transition name="modal"><div v-if="showPromoteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 class="font-bold text-lg mb-4 text-blue-900">Naik Kelas</h3><div class="bg-blue-50 p-3 rounded mb-4 text-sm"><p>Pelajar: <b>{{ promoteData.nama }}</b></p></div><div v-if="promoteData.isGraduating" class="p-4 bg-green-100 rounded text-center text-green-800 font-bold">Tamat Darjah 6</div><div v-else><label class="block text-xs font-bold text-gray-600 mb-2">Kelas Baru ({{ promoteData.nextYearVal }}):</label><select v-model="promoteData.selectedClassType" class="w-full border p-2 rounded"><option value="Cemerlang">Cemerlang</option><option value="Gemilang">Gemilang</option></select></div><div class="flex justify-end gap-2 mt-4"><button @click="showPromoteModal=false" class="px-4 py-2 text-gray-500 bg-gray-100 rounded">Batal</button><button @click="confirmPromote" class="px-4 py-2 bg-blue-600 text-white rounded">Sahkan</button></div></div></div></transition>
     <transition name="modal"><div v-if="showRemoveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6"><h3 class="font-bold text-lg mb-4 text-red-700">Sebab Pengeluaran</h3><div class="space-y-2"><button @click="confirmRemove('Masalah Disiplin')" class="w-full text-left px-4 py-3 border rounded hover:bg-red-50">1. Masalah Disiplin</button><button @click="confirmRemove('Pindah Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-yellow-50">2. Pindah Sekolah</button><button @click="confirmRemove('Tamat Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-blue-50">3. Tamat Darjah 6</button></div><button @click="showRemoveModal=false" class="mt-4 w-full text-gray-500 py-2">Batal</button></div></div></transition>
+    <transition name="modal"><div v-if="showDocModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-lg w-full max-w-md p-6"><h3 class="font-bold text-lg mb-4 text-blue-900 border-b pb-2">Dokumen Pelajar</h3><div class="space-y-2"><a :href="selectedDocStudent?.urlGambar" target="_blank" class="block w-full text-center bg-blue-50 text-blue-700 py-2 rounded border border-blue-200">Gambar Pasport</a><a :href="selectedDocStudent?.urlSijil" target="_blank" class="block w-full text-center bg-green-50 text-green-700 py-2 rounded border border-green-200">Sijil Lahir</a><a :href="selectedDocStudent?.urlIC" target="_blank" class="block w-full text-center bg-purple-50 text-purple-700 py-2 rounded border border-purple-200">IC Waris</a></div><button @click="showDocModal=false" class="mt-4 w-full bg-gray-200 py-2 rounded">Tutup</button></div></div></transition>
 
-    <transition name="modal"><div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"><div class="bg-white rounded-lg w-full max-w-2xl p-6"><h3 class="font-bold text-lg mb-4 border-b pb-2">Kemaskini Data</h3><form @submit.prevent="submitEdit" class="grid md:grid-cols-2 gap-4"><div class="col-span-2 bg-blue-50 p-3 rounded border"><h4 class="font-bold text-xs text-blue-800 mb-2">PELAJAR</h4><div class="grid md:grid-cols-2 gap-3"><input v-model="editForm.nama" placeholder="Nama" class="border p-2 rounded text-sm uppercase col-span-2"><input v-model="editForm.ic" placeholder="IC" class="border p-2 rounded text-sm"><input v-model="editForm.kelas" placeholder="Kelas" class="border p-2 rounded text-sm"><select v-model="editForm.jantina" class="border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select><select v-model="editForm.agama" class="border p-2 rounded text-sm"><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Lain-lain</option></select><input v-model="editForm.tahunMasuk" placeholder="Tahun Masuk" class="border p-2 rounded text-sm"></div><textarea v-model="editForm.alamat" placeholder="Alamat" class="w-full border p-2 rounded text-sm mt-2"></textarea></div><div class="col-span-2 bg-red-50 p-3 rounded border"><h4 class="font-bold text-xs text-red-800 mb-2">KESIHATAN (AUTO-LIST)</h4><div class="grid md:grid-cols-2 gap-3"><div><input list="listPenyakit" v-model="editForm.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Penyakit"><datalist id="listPenyakit"><option v-for="p in diseaseList" :value="p"></option></datalist></div><div><input list="listAlahan" v-model="editForm.alahan" class="w-full border p-2 rounded text-sm" placeholder="Alahan"><datalist id="listAlahan"><option v-for="a in allergyList" :value="a"></option></datalist></div></div></div><div class="col-span-2 flex justify-end gap-2"><button type="button" @click="showEditModal=false" class="px-4 py-2 bg-gray-200 rounded">Batal</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button></div></form></div></div></transition>
-
-    <transition name="modal"><div v-if="showDocModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"><div class="bg-white rounded-lg w-full max-w-md p-6"><h3 class="font-bold text-lg mb-4 text-blue-900 border-b pb-2">Dokumen Pelajar</h3><div class="space-y-2"><a :href="selectedDocStudent?.urlGambar" target="_blank" class="block w-full text-center bg-blue-50 text-blue-700 py-2 rounded border border-blue-200 hover:bg-blue-100">Gambar Pasport</a><a :href="selectedDocStudent?.urlSijil" target="_blank" class="block w-full text-center bg-green-50 text-green-700 py-2 rounded border border-green-200 hover:bg-green-100">Sijil Lahir</a><a :href="selectedDocStudent?.urlIC" target="_blank" class="block w-full text-center bg-purple-50 text-purple-700 py-2 rounded border border-purple-200 hover:bg-purple-100">IC Waris</a></div><button @click="showDocModal=false" class="mt-4 w-full bg-gray-200 py-2 rounded">Tutup</button></div></div></transition>
+    <transition name="modal"><div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"><div class="bg-white rounded-lg w-full max-w-2xl p-6"><h3 class="font-bold text-lg mb-4 border-b pb-2">Kemaskini Data</h3><form @submit.prevent="submitEdit" class="grid md:grid-cols-2 gap-4"><div class="col-span-2 bg-blue-50 p-3 rounded border"><h4 class="font-bold text-xs text-blue-800 mb-2">PELAJAR</h4><div class="grid md:grid-cols-2 gap-3"><input v-model="editForm.nama" placeholder="Nama" class="border p-2 rounded text-sm uppercase col-span-2"><input v-model="editForm.ic" placeholder="IC" class="border p-2 rounded text-sm"><input v-model="editForm.kelas" placeholder="Kelas" class="border p-2 rounded text-sm"><select v-model="editForm.jantina" class="border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select><select v-model="editForm.agama" class="border p-2 rounded text-sm"><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Lain-lain</option></select><input v-model="editForm.tahunMasuk" placeholder="Tahun Masuk" class="border p-2 rounded text-sm"></div><textarea v-model="editForm.alamat" placeholder="Alamat" class="w-full border p-2 rounded text-sm mt-2"></textarea></div><div class="col-span-2 bg-gray-50 p-3 rounded border"><h4 class="font-bold text-gray-800 text-xs mb-2">WARIS</h4><div class="grid md:grid-cols-2 gap-3"><input v-model="editForm.namaBapa" placeholder="Bapa" class="border p-2 rounded text-sm uppercase"><input v-model="editForm.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm"><input v-model="editForm.noTel" placeholder="Tel" class="border p-2 rounded text-sm col-span-2"></div></div>
+    <div class="col-span-2 bg-yellow-50 p-3 rounded border"><h4 class="font-bold text-yellow-800 text-xs mb-2">KOKURIKULUM</h4><div class="grid md:grid-cols-3 gap-2"><div><label class="text-[10px]">Sukan</label><input list="listSukan" v-model="editForm.sukan" class="w-full border p-2 rounded text-sm"><datalist id="listSukan"><option v-for="i in sukanList" :value="i"></option></datalist></div><div><label class="text-[10px]">Kelab</label><input list="listKelab" v-model="editForm.kelab" class="w-full border p-2 rounded text-sm"><datalist id="listKelab"><option v-for="i in kelabList" :value="i"></option></datalist></div><div><label class="text-[10px]">Unit</label><input list="listUnit" v-model="editForm.unit" class="w-full border p-2 rounded text-sm"><datalist id="listUnit"><option v-for="i in unitList" :value="i"></option></datalist></div></div></div>
+    <div class="col-span-2 bg-red-50 p-3 rounded border"><h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4><div class="grid md:grid-cols-2 gap-3"><div><input list="listPenyakit" v-model="editForm.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Penyakit"><datalist id="listPenyakit"><option v-for="p in diseaseList" :value="p"></option></datalist></div><div><input list="listAlahan" v-model="editForm.alahan" class="w-full border p-2 rounded text-sm" placeholder="Alahan"><datalist id="listAlahan"><option v-for="a in allergyList" :value="a"></option></datalist></div></div></div><div class="col-span-2 flex justify-end gap-2"><button type="button" @click="showEditModal=false" class="px-4 py-2 bg-gray-200 rounded">Batal</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button></div></form></div></div></transition>
 
     <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -94,8 +94,8 @@
                     <tbody class="divide-y divide-gray-200">
                         <tr v-for="std in existingStudents" :key="std.ic">
                             <td class="px-4 py-3"><div class="font-bold">{{ std.nama }}</div><div class="text-xs text-gray-500">{{ std.ic }}</div><div class="text-xs font-semibold text-green-600">{{ std.kelas }}</div></td>
-                            <td class="px-4 py-3"><div class="text-[10px]">Masuk: {{ std.tahunMasuk || '-' }}</div><div class="text-[10px] text-gray-500">{{ calculateDuration(std.tahunMasuk) }}</div><div v-if="std.penyakit && std.penyakit!=='Tiada'" class="text-[10px] text-red-600 font-bold">! {{ std.penyakit }}</div></td>
-                            <td class="px-4 py-3"><button @click="openDocModal(std)" class="text-blue-600 text-xs underline bg-blue-50 px-2 py-1 rounded">Lihat Fail</button></td>
+                            <td class="px-4 py-3"><div class="text-[10px]">Masuk: {{ std.tahunMasuk || '-' }}</div><div class="text-[10px] text-gray-500">{{ calculateDuration(std.tahunMasuk) }}</div><div v-if="std.sukan" class="text-[10px] text-purple-600 mt-1">Ko-Q: {{std.unit}}</div></td>
+                            <td class="px-4 py-3"><button @click="openDocModal(std)" class="text-blue-600 text-xs underline bg-blue-50 px-2 py-1 rounded">Lihat</button></td>
                             <td class="px-4 py-3 flex gap-2">
                                 <button @click="openPromoteModal(std)" class="text-purple-600 border border-purple-200 px-2 py-1 rounded hover:bg-purple-50 text-xs" title="Naik Kelas"><i class="fa-solid fa-arrow-up"></i></button>
                                 <button @click="openEditModal(std)" class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 text-xs"><i class="fa-solid fa-pen"></i></button>
@@ -108,10 +108,14 @@
             </div>
 
             <div v-if="activeTab === 'add'" class="bg-white p-6 rounded shadow max-w-3xl mx-auto">
-                <div class="mb-4 bg-purple-50 p-3 rounded text-sm flex gap-4">
-                    <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="new"> <span>Permohonan Baru</span></label>
-                    <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="existing"> <span class="font-bold text-green-700">Pelajar Lama (Terus Masuk)</span></label>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex gap-4 bg-purple-50 p-2 rounded text-sm">
+                        <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="new"> <span>Permohonan Baru</span></label>
+                        <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="existing"> <span class="font-bold text-green-700">Pelajar Lama</span></label>
+                    </div>
+                    <button @click="resetForm" class="text-gray-500 text-xs hover:text-red-500 underline">Kosongkan Borang</button>
                 </div>
+
                 <form @submit.prevent="handleFormSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="col-span-2 bg-blue-50 p-3 rounded border">
                         <h4 class="font-bold text-blue-800 text-xs mb-2">MAKLUMAT PELAJAR</h4>
@@ -128,48 +132,33 @@
                         <textarea v-model="form.alamat" placeholder="Alamat Penuh" rows="2" class="w-full border p-2 rounded text-sm mt-2"></textarea>
                     </div>
 
-                    <div class="col-span-2 bg-gray-50 p-3 rounded border">
-                         <h4 class="font-bold text-gray-800 text-xs mb-2">MAKLUMAT WARIS</h4>
-                         <div class="grid md:grid-cols-2 gap-3">
-                            <input v-model="form.namaBapa" placeholder="Nama Bapa/Penjaga" required class="border p-2 rounded text-sm uppercase">
-                            <input v-model="form.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
-                            <input v-model="form.noTel" placeholder="No. Tel (Wajib)" required class="border p-2 rounded text-sm col-span-2">
-                         </div>
+                    <div class="col-span-2 bg-yellow-50 p-3 rounded border">
+                        <h4 class="font-bold text-yellow-800 text-xs mb-2">KOKURIKULUM (Pilihan)</h4>
+                        <div class="grid md:grid-cols-3 gap-2">
+                            <div><label class="text-[10px]">Sukan</label><input list="listSukan" v-model="form.sukan" class="w-full border p-2 rounded text-sm"><datalist id="listSukan"><option v-for="i in sukanList" :value="i"></option></datalist></div>
+                            <div><label class="text-[10px]">Kelab</label><input list="listKelab" v-model="form.kelab" class="w-full border p-2 rounded text-sm"><datalist id="listKelab"><option v-for="i in kelabList" :value="i"></option></datalist></div>
+                            <div><label class="text-[10px]">Unit</label><input list="listUnit" v-model="form.unit" class="w-full border p-2 rounded text-sm"><datalist id="listUnit"><option v-for="i in unitList" :value="i"></option></datalist></div>
+                        </div>
                     </div>
 
-                    <div class="col-span-2 bg-red-50 p-3 rounded border">
-                        <h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4>
-                        <div class="grid md:grid-cols-2 gap-3">
-                           <div>
-                               <label class="text-[10px] text-gray-600">Penyakit</label>
-                               <input list="listPenyakit" v-model="form.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Taip / Pilih">
-                               <datalist id="listPenyakit"><option v-for="p in diseaseList" :value="p"></option></datalist>
-                           </div>
-                           <div>
-                               <label class="text-[10px] text-gray-600">Alahan</label>
-                               <input list="listAlahan" v-model="form.alahan" class="w-full border p-2 rounded text-sm" placeholder="Taip / Pilih">
-                               <datalist id="listAlahan"><option v-for="a in allergyList" :value="a"></option></datalist>
-                           </div>
-                        </div>
-                   </div>
+                    <div class="col-span-2 bg-gray-50 p-3 rounded border">
+                         <h4 class="font-bold text-gray-800 text-xs mb-2">WARIS & KESIHATAN</h4>
+                         <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="form.namaBapa" placeholder="Nama Bapa" required class="border p-2 rounded text-sm uppercase">
+                            <input v-model="form.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
+                            <input v-model="form.noTel" placeholder="No. Tel" required class="border p-2 rounded text-sm col-span-2">
+                            <div><input list="listPenyakit" v-model="form.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Penyakit"><datalist id="listPenyakit"><option v-for="p in diseaseList" :value="p"></option></datalist></div>
+                            <div><input list="listAlahan" v-model="form.alahan" class="w-full border p-2 rounded text-sm" placeholder="Alahan"><datalist id="listAlahan"><option v-for="a in allergyList" :value="a"></option></datalist></div>
+                         </div>
+                    </div>
 
                    <div class="col-span-2 border-t pt-2 mt-2">
                         <h4 class="font-bold text-sm text-blue-800 mb-2">Muat Naik Dokumen (Wajib)</h4>
                         <div class="grid md:grid-cols-3 gap-3">
-                            <div class="border border-dashed border-gray-400 p-2 text-center rounded bg-gray-50">
-                                <label class="block text-[10px] font-bold text-gray-500 mb-1">Gambar Pasport</label>
-                                <input type="file" @change="handleFile($event, 'fileGambar')" accept="image/*" class="text-[10px] w-full">
-                            </div>
-                            <div class="border border-dashed border-gray-400 p-2 text-center rounded bg-gray-50">
-                                <label class="block text-[10px] font-bold text-gray-500 mb-1">Sijil Lahir</label>
-                                <input type="file" @change="handleFile($event, 'fileSijil')" accept="image/*,application/pdf" class="text-[10px] w-full">
-                            </div>
-                            <div class="border border-dashed border-gray-400 p-2 text-center rounded bg-gray-50">
-                                <label class="block text-[10px] font-bold text-gray-500 mb-1">IC Waris</label>
-                                <input type="file" @change="handleFile($event, 'fileIC')" accept="image/*,application/pdf" class="text-[10px] w-full">
-                            </div>
+                            <div class="border border-dashed p-2 text-center rounded bg-gray-50"><label class="block text-[10px]">Gambar Pasport</label><input type="file" @change="handleFile($event, 'fileGambar')" accept="image/*" class="text-[10px] w-full"></div>
+                            <div class="border border-dashed p-2 text-center rounded bg-gray-50"><label class="block text-[10px]">Sijil Lahir</label><input type="file" @change="handleFile($event, 'fileSijil')" accept="image/*,application/pdf" class="text-[10px] w-full"></div>
+                            <div class="border border-dashed p-2 text-center rounded bg-gray-50"><label class="block text-[10px]">IC Waris</label><input type="file" @change="handleFile($event, 'fileIC')" accept="image/*,application/pdf" class="text-[10px] w-full"></div>
                         </div>
-                        <p class="text-[10px] text-red-500 mt-1">* Fail maks 2MB.</p>
                    </div>
                     
                     <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-3 rounded mt-2 hover:bg-blue-700">Simpan & Muat Naik</button>
@@ -182,15 +171,15 @@
                     <div>
                         <h4 class="font-bold text-sm mb-3">Maklumat Umum</h4>
                         <div class="mb-4"><label class="block text-xs font-bold text-gray-600">Guru Besar</label><input v-model="settings.guruBesar" class="w-full border p-2 rounded text-sm uppercase"></div>
-                        <div class="mb-4"><label class="block text-xs font-bold text-gray-600">Jata Negara (Imej)</label><input type="file" @change="handleLogoUpload($event, 'logoJata')" accept="image/*" class="text-xs w-full mb-2"><img v-if="settings.logoJata" :src="settings.logoJata" class="h-12 border"></div>
-                        <div class="mb-4"><label class="block text-xs font-bold text-gray-600">Lencana Sekolah (Imej)</label><input type="file" @change="handleLogoUpload($event, 'logoLencana')" accept="image/*" class="text-xs w-full mb-2"><img v-if="settings.logoLencana" :src="settings.logoLencana" class="h-12 border"></div>
+                        <div class="mb-4"><label class="block text-xs font-bold text-gray-600">Jata Negara</label><input type="file" @change="handleLogoUpload($event, 'logoJata')" accept="image/*" class="text-xs w-full mb-2"><img v-if="settings.logoJata" :src="settings.logoJata" class="h-12 border"></div>
+                        <div class="mb-4"><label class="block text-xs font-bold text-gray-600">Lencana</label><input type="file" @change="handleLogoUpload($event, 'logoLencana')" accept="image/*" class="text-xs w-full mb-2"><img v-if="settings.logoLencana" :src="settings.logoLencana" class="h-12 border"></div>
                     </div>
                     <div>
-                        <div class="flex justify-between items-center mb-3"><h4 class="font-bold text-sm">Senarai Keperluan</h4><button @click="addItem" class="text-green-600 text-xs border border-green-600 px-2 py-1 rounded">+ Item</button></div>
+                        <div class="flex justify-between items-center mb-3"><h4 class="font-bold text-sm">Keperluan Asrama</h4><button @click="addItem" class="text-green-600 text-xs border border-green-600 px-2 py-1 rounded">+ Item</button></div>
                         <div class="max-h-[300px] overflow-y-auto border rounded p-2 bg-gray-50">
                             <table class="w-full text-xs">
-                                <thead><tr class="text-left text-gray-500"><th>Item</th><th class="w-16">Qty</th><th></th></tr></thead>
-                                <tbody><tr v-for="(item, i) in settings.keperluanList" :key="i" class="border-b"><td class="p-1"><input v-model="item.name" class="w-full bg-transparent p-1"></td><td class="p-1"><input v-model="item.qty" class="w-full bg-transparent p-1"></td><td class="p-1"><button @click="removeItem(i)" class="text-red-500">x</button></td></tr></tbody>
+                                <thead><tr class="text-left text-gray-500"><th>Item</th><th class="w-12">Qty</th><th>Catatan</th><th class="w-6"></th></tr></thead>
+                                <tbody><tr v-for="(item, i) in settings.keperluanList" :key="i" class="border-b"><td class="p-1"><input v-model="item.name" class="w-full bg-transparent p-1"></td><td class="p-1"><input v-model="item.qty" class="w-full bg-transparent p-1"></td><td class="p-1"><input v-model="item.note" class="w-full bg-transparent p-1 placeholder-gray-300" placeholder="Sebab/Nota"></td><td class="p-1"><button @click="removeItem(i)" class="text-red-500">x</button></td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -214,7 +203,7 @@
 </div>
 
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzv2QtoPJh9WeqcJENMuDLWbz90p056moQw6X3mcZRRUK10TzmtmTH0XQ6VUUBZ2k_J/exec'; 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxdFi2XtYL4SgzHglNWpJpJZp48LSVYkmeXEi1xNz7D9s4V6dUpHZtb3vYwq0h3YgpV/exec'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -232,16 +221,16 @@
                 
                 promoteData: { ic: '', nama: '', currentClass: '', nextYearVal: '', selectedClassType: 'Cemerlang', isGraduating: false },
                 entryType: 'new',
-                // BORANG PENUH DI SINI:
-                form: { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' },
+                form: { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada', sukan:'', kelab:'', unit:'' },
                 files: { fileGambar: null, fileSijil: null, fileIC: null },
                 
-                editForm: {}, originalEditIC: '', generatedClasses: [], diseaseList: [], allergyList: [],
+                editForm: {}, originalEditIC: '', generatedClasses: [], 
+                diseaseList: [], allergyList: [], sukanList:[], kelabList:[], unitList:[], // Auto-Lists
                 
                 settings: {
                     guruBesar: 'JUTIE ANAK UGAK',
                     logoJata: '', logoLencana: '',
-                    keperluanList: [{name:'Baldi', qty:'1'}, {name:'Bantal', qty:'1'}] // Default
+                    keperluanList: [{name:'Baldi', qty:'1', note:''}, {name:'Bantal', qty:'1', note:''}]
                 }
             }
         },
@@ -253,13 +242,21 @@
         },
         mounted() { this.generateClassList(); },
         methods: {
-            // SETTINGS
+            // --- NEW: RESET & DUPLICATE CHECK ---
+            resetForm() {
+                this.form = { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada', sukan:'', kelab:'', unit:'' };
+                this.files = { fileGambar: null, fileSijil: null, fileIC: null };
+                // Reset file inputs visual
+                document.querySelectorAll('input[type=file]').forEach(el => el.value = '');
+            },
+            
+            // --- SETTINGS LOGIC ---
             async fetchSettings() {
                 try { const res = await fetch(GAS_URL + '?action=readSettings'); const json = await res.json(); if(json.result==='success' && json.data.guruBesar) { const s = json.data; this.settings.guruBesar = s.guruBesar; if(s.logoJata) this.settings.logoJata=s.logoJata; if(s.logoLencana) this.settings.logoLencana=s.logoLencana; if(s.keperluanList) this.settings.keperluanList=JSON.parse(s.keperluanList); } } catch(e){}
             },
             async saveSettings() { this.isLoading=true; const p = new URLSearchParams({action:'saveSettings', guruBesar:this.settings.guruBesar, logoJata:this.settings.logoJata, logoLencana:this.settings.logoLencana, keperluanList:JSON.stringify(this.settings.keperluanList)}); await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p}); this.isLoading=false; alert('Disimpan!'); },
             handleLogoUpload(e, key) { const f=e.target.files[0]; if(f){ const r=new FileReader(); r.onload=(ev)=>this.settings[key]=ev.target.result; r.readAsDataURL(f); } },
-            addItem() { this.settings.keperluanList.push({name:'', qty:'1'}); }, removeItem(i) { this.settings.keperluanList.splice(i,1); },
+            addItem() { this.settings.keperluanList.push({name:'', qty:'1', note:''}); }, removeItem(i) { this.settings.keperluanList.splice(i,1); },
 
             // MAIN LOGIC
             goHome() { this.currentView = 'login_selection'; }, logout() { this.goHome(); },
@@ -267,16 +264,33 @@
             autoDetectGender(target) { const source = target === 'form' ? this.form : this.editForm; const ic = source.ic.replace(/[^0-9]/g, ''); if (ic.length === 12) { source.jantina = (parseInt(ic.slice(-1)) % 2 !== 0) ? 'Lelaki' : 'Perempuan'; } },
             calculateDuration(year) { if(!year) return 'Baru'; return (new Date().getFullYear() - parseInt(year)) + ' Tahun'; },
             formatDate(dateStr) { if(!dateStr) return '-'; return new Date(dateStr).toLocaleDateString('ms-MY'); },
-            populateLists() { const d=new Set(['Tiada']); const a=new Set(['Tiada']); this.students.forEach(s => { if(s.penyakit) d.add(s.penyakit); if(s.alahan) a.add(s.alahan); }); this.diseaseList=Array.from(d); this.allergyList=Array.from(a); },
             
-            // API
-            async fetchStudents() { if (GAS_URL.includes('LETAKKAN')) { alert('URL Script Salah!'); return; } this.isLoading = true; try { const res = await fetch(GAS_URL + '?action=read'); const json = await res.json(); if (json.result === 'success') { this.students = json.data; this.populateLists(); this.fetchSettings(); } } catch (e) {} finally { this.isLoading = false; } },
+            // --- AUTO POPULATE (SMART DROPDOWNS) ---
+            populateLists() { 
+                const d=new Set(['Tiada']); const a=new Set(['Tiada']); 
+                const s=new Set(['']); const k=new Set(['']); const u=new Set(['']);
+                this.students.forEach(std => { 
+                    if(std.penyakit) d.add(std.penyakit); if(std.alahan) a.add(std.alahan); 
+                    if(std.sukan) s.add(std.sukan); if(std.kelab) k.add(std.kelab); if(std.unit) u.add(std.unit);
+                }); 
+                this.diseaseList=Array.from(d); this.allergyList=Array.from(a); 
+                this.sukanList=Array.from(s); this.kelabList=Array.from(k); this.unitList=Array.from(u);
+            },
             
-            // SUBMIT & UPLOAD
-            handleFile(event, key) { const file = event.target.files[0]; if (file && file.size < 2*1024*1024) this.files[key] = file; },
-            toBase64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e); }); },
-            async uploadSingleFile(file, name) { const b64 = await this.toBase64(file); const p = new URLSearchParams({action:'upload', base64:b64, mimeType:file.type, filename:name}); const r = await fetch(GAS_URL, {method:'POST', body:p}); const j = await r.json(); return j.url; },
+            // --- PROMOTE LOGIC ---
+            openPromoteModal(std) { const p=std.kelas.split(' '); const y=parseInt(p[0]); this.promoteData={ic:std.ic, nama:std.nama, currentClass:std.kelas, nextYearVal:y+1, selectedClassType:std.kelas.includes('Gemilang')?'Gemilang':'Cemerlang', isGraduating:y>=6}; this.showPromoteModal=true; },
+            async confirmPromote() { this.isLoading=true; if(this.promoteData.isGraduating){ await this.silentRemove(this.promoteData.ic, 'Tamat Darjah 6'); } else { const p=new URLSearchParams({action:'updateStudent', original_ic:this.promoteData.ic, kelas:`${this.promoteData.nextYearVal} ${this.promoteData.selectedClassType}`}); await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p}); } this.showPromoteModal=false; setTimeout(()=>this.fetchStudents(),1500); this.isLoading=false; },
+
+            async fetchStudents() { if (GAS_URL.includes('LETAKKAN')) { alert('Masukkan URL Script!'); return; } this.isLoading = true; try { const res = await fetch(GAS_URL + '?action=read'); const json = await res.json(); if (json.result === 'success') { this.students = json.data; this.populateLists(); this.checkAutoGraduation(); this.fetchSettings(); } } catch (e) { console.error(e); } finally { this.isLoading = false; } },
+            
+            // --- SUBMIT WITH DUPLICATE CHECK & RESET ---
             async handleFormSubmit() {
+                // Duplicate Check
+                const duplicate = this.students.find(s => s.nama.toLowerCase() === this.form.nama.toLowerCase());
+                if (duplicate) {
+                    if (!confirm("AMARAN: Nama pelajar ini sudah ada dalam sistem. Adakah anda pasti mahu meneruskan?")) return;
+                }
+
                 this.isLoading = true; this.loadingText = "Muat naik dokumen...";
                 try {
                     let urlGambar='', urlSijil='', urlIC='';
@@ -287,27 +301,29 @@
                     this.loadingText = "Simpan data...";
                     const p = new URLSearchParams({action:'insert', ...this.form, status:this.entryType==='existing'?'Diterima':'Baru', urlGambar, urlSijil, urlIC});
                     await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p});
-                    alert('Berjaya!'); this.files={fileGambar:null, fileSijil:null, fileIC:null}; this.fetchStudents();
+                    
+                    alert('Berjaya!'); 
+                    this.resetForm(); // Auto Reset Here
+                    setTimeout(() => { this.fetchStudents(); }, 2000);
                 } catch(e) { alert('Ralat: '+e.message); } finally { this.isLoading = false; }
             },
-
-            // ACTIONS
-            openPromoteModal(std) { const p=std.kelas.split(' '); const y=parseInt(p[0]); this.promoteData={ic:std.ic, nama:std.nama, currentClass:std.kelas, nextYearVal:y+1, selectedClassType:std.kelas.includes('Gemilang')?'Gemilang':'Cemerlang', isGraduating:y>=6}; this.showPromoteModal=true; },
-            async confirmPromote() { this.isLoading=true; if(this.promoteData.isGraduating){ await this.silentRemove(this.promoteData.ic, 'Tamat Darjah 6'); } else { const p=new URLSearchParams({action:'updateStudent', original_ic:this.promoteData.ic, kelas:`${this.promoteData.nextYearVal} ${this.promoteData.selectedClassType}`}); await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p}); } this.showPromoteModal=false; setTimeout(()=>this.fetchStudents(),1500); this.isLoading=false; },
             
-            openRemoveModal(std) { this.selectedRemoveStudent=std; this.showRemoveModal=true; },
-            async confirmRemove(r) { this.isLoading=true; await this.silentRemove(this.selectedRemoveStudent.ic, r); this.showRemoveModal=false; this.fetchStudents(); this.isLoading=false; },
-            async silentRemove(ic, r) { await fetch(`${GAS_URL}?action=updateStatus&ic=${ic}&status=Bekas Pelajar&sebabKeluar=${encodeURIComponent(r)}`, {mode:'no-cors'}); },
-            
-            openEditModal(std) { this.originalEditIC=std.ic; this.editForm={...std}; this.showEditModal=true; },
-            async submitEdit() { this.isLoading=true; const p=new URLSearchParams({action:'updateStudent', original_ic:this.originalEditIC, ...this.editForm}); await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p}); this.showEditModal=false; setTimeout(()=>this.fetchStudents(),1500); this.isLoading=false; },
-            
-            openDocModal(std) { this.selectedDocStudent=std; this.showDocModal=true; },
-            async updateStatus(std, st) { if(confirm('Pasti?')) { this.isLoading=true; await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${st}`, {mode:'no-cors'}); setTimeout(()=>this.fetchStudents(),1000); this.isLoading=false; } },
+            // --- HELPER ---
+            handleFile(event, key) { const file = event.target.files[0]; if (file && file.size < 2*1024*1024) this.files[key] = file; },
+            toBase64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e); }); },
+            async uploadSingleFile(file, name) { const b64 = await this.toBase64(file); const p = new URLSearchParams({action:'upload', base64:b64, mimeType:file.type, filename:name}); const r = await fetch(GAS_URL, {method:'POST', body:p}); const j = await r.json(); return j.url; },
+            openDocModal(std) { this.selectedDocStudent = std; this.showDocModal = true; },
+            checkAutoGraduation() { const cy = new Date().getFullYear(); this.existingStudents.forEach(std => { const y = parseInt(std.ic.substring(0,2)); const fy = y > 50 ? 1900+y : 2000+y; if (cy - fy >= 13) this.silentRemove(std.ic, 'Tamat Darjah 6'); }); },
+            async silentRemove(ic, reason) { try { await fetch(`${GAS_URL}?action=updateStatus&ic=${ic}&status=Bekas Pelajar&sebabKeluar=${encodeURIComponent(reason)}`, {mode:'no-cors'}); } catch(e){} },
+            openRemoveModal(std) { this.selectedRemoveStudent = std; this.showRemoveModal = true; },
+            async confirmRemove(r) { this.isLoading = true; try { await fetch(`${GAS_URL}?action=updateStatus&ic=${this.selectedRemoveStudent.ic}&status=Bekas Pelajar&sebabKeluar=${encodeURIComponent(r)}`, {mode:'no-cors'}); this.showRemoveModal = false; this.fetchStudents(); } catch(e){} finally { this.isLoading = false; } },
+            openEditModal(std) { this.originalEditIC = std.ic; this.editForm = {...std}; this.showEditModal = true; },
+            async submitEdit() { this.isLoading = true; const p=new URLSearchParams({action:'updateStudent', original_ic:this.originalEditIC, ...this.editForm}); await fetch(GAS_URL, {method:'POST', mode:'no-cors', body:p}); this.showEditModal = false; setTimeout(()=>this.fetchStudents(),1500); this.isLoading=false; },
             async adminLogin() { if((this.loginForm.id==='01115864913' && this.loginForm.pass==='01115864913') || this.loginForm.pass==='Ybb4412') { this.currentUser={role:'admin',name:'Admin'}; this.currentView='admin_dashboard'; await this.fetchStudents(); } else alert('Login Salah'); },
-            async parentCheck() { if(!this.students.length) await this.fetchStudents(); const f=this.students.find(s=>String(s.ic).includes(this.parentSearchIC)); if(f){this.selectedStudent=f;this.currentView='parent_result';} else alert('Tiada'); },
+            async updateStatus(std, st) { if(confirm('Pasti?')) { this.isLoading=true; await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${st}`, {mode:'no-cors'}); setTimeout(()=>this.fetchStudents(),1000); this.isLoading=false; } },
+            async parentCheck() { if(!this.students.length) await this.fetchStudents(); const inp = this.parentSearchIC.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); const f=this.students.find(s=>String(s.ic).includes(inp)); if(f){this.selectedStudent=f;this.currentView='parent_result';} else alert('Tiada'); },
 
-            // PRINT
+            // PRINT LETTER (Updated with Catatan Column)
             printLetter(std) {
                 const doc = new jsPDF();
                 if (this.settings.logoJata) doc.addImage(this.settings.logoJata, 'JPEG', 20, 10, 20, 15);
@@ -326,7 +342,7 @@
                 
                 doc.addPage();
                 doc.setFont("times", "bold"); doc.text("SENARAI KEPERLUAN", 105, 20, null, null, "center");
-                const body = this.settings.keperluanList.map((x,i)=>[i+1, x.name, x.qty, '']);
+                const body = this.settings.keperluanList.map((x,i)=>[i+1, x.name, x.qty, x.note || '']); // Added Note
                 doc.autoTable({ head: [['Bil','Item','Qty','Catatan']], body: body, startY: 30, theme:'grid' });
                 doc.autoPrint(); window.open(doc.output('bloburl'), '_blank');
             }
