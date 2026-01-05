@@ -187,7 +187,7 @@
                                 <input v-model="form.namaBapa" required class="w-full border p-2 rounded text-sm uppercase">
                             </div>
                             <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">No. Ibubapa/Penjaga</label>
+                                <label class="text-xs font-bold text-gray-600">No. Kad Pengenalan Ibubapa/Penjaga</label>
                                 <input v-model="form.icBapa" class="w-full border p-2 rounded text-sm">
                             </div>
                             <div>
@@ -199,7 +199,7 @@
                         <div class="bg-red-50 p-3 rounded border border-red-100">
                             <h4 class="font-bold text-red-700 text-sm mb-3">Rekod Kesihatan</h4>
                             <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Penyakit Kronik</label>
+                                <label class="text-xs font-bold text-gray-600">Jenis Penyakit</label>
                                 <div class="flex gap-2 mb-2">
                                     <select v-model="form.penyakit" class="w-full border p-2 rounded text-sm bg-white">
                                         <option v-for="d in diseaseList" :key="d" :value="d">{{ d }}</option>
@@ -500,6 +500,7 @@
 </script>
 </body>
 </html>
+
 
 
 
