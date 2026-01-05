@@ -30,21 +30,21 @@
         <div v-if="showRemoveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                 <h3 class="font-bold text-lg mb-4 text-red-700 border-b pb-2">Pengeluaran Pelajar</h3>
-                <p class="mb-4">Sila pilih sebab <b>{{ selectedRemoveStudent.nama }}</b> dikeluarkan:</p>
+                <p class="mb-4 text-sm">Sila pilih sebab <b>{{ selectedRemoveStudent?.nama }}</b> dikeluarkan:</p>
                 
                 <div class="space-y-3">
-                    <button @click="confirmRemove('Masalah Disiplin')" class="w-full text-left px-4 py-3 border rounded hover:bg-red-50 hover:border-red-500 font-medium">
+                    <button @click="confirmRemove('Masalah Disiplin')" class="w-full text-left px-4 py-3 border rounded hover:bg-red-50 hover:border-red-500 font-medium text-sm">
                         1. Dikeluarkan kerana Masalah Disiplin
                     </button>
-                    <button @click="confirmRemove('Berhenti / Pindah Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-yellow-50 hover:border-yellow-500 font-medium">
+                    <button @click="confirmRemove('Berhenti / Pindah Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-yellow-50 hover:border-yellow-500 font-medium text-sm">
                         2. Pelajar Memohon Keluar / Pindah
                     </button>
-                    <button @click="confirmRemove('Tamat Darjah 6')" class="w-full text-left px-4 py-3 border rounded hover:bg-blue-50 hover:border-blue-500 font-medium">
+                    <button @click="confirmRemove('Tamat Darjah 6')" class="w-full text-left px-4 py-3 border rounded hover:bg-blue-50 hover:border-blue-500 font-medium text-sm">
                         3. Tamat Darjah 6 / Naik Tingkatan
                     </button>
                 </div>
 
-                <button @click="showRemoveModal = false" class="mt-6 w-full text-gray-500 py-2 hover:text-gray-800">Batal</button>
+                <button @click="showRemoveModal = false" class="mt-6 w-full text-gray-500 py-2 hover:text-gray-800 text-sm">Batal</button>
             </div>
         </div>
     </transition>
@@ -70,7 +70,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
+                     <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
                         <button type="button" @click="showEditModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
                         <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Simpan</button>
                     </div>
@@ -190,9 +190,9 @@
                                 <div class="text-xs text-gray-500">{{ std.ic }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span v-if="std.sebabKeluar.includes('Disiplin')" class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
-                                <span v-else-if="std.sebabKeluar.includes('Tamat')" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
-                                <span v-else class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
+                                <span v-if="std.sebabKeluar && std.sebabKeluar.includes('Disiplin')" class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
+                                <span v-else-if="std.sebabKeluar && std.sebabKeluar.includes('Tamat')" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
+                                <span v-else class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar || 'Tiada Rekod' }}</span>
                             </td>
                             <td class="px-4 py-3 text-xs text-gray-500">
                                 {{ formatDate(std.tarikhKeluar) }}
@@ -245,11 +245,27 @@
             </div>
         </div>
         
-        </main>
+        <div v-if="currentView === 'parent_result'" class="flex justify-center">
+            <div class="bg-white w-full max-w-2xl p-8 rounded shadow-xl border-t-8 border-blue-900">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold">Status Permohonan</h2>
+                    <p class="text-gray-500 mt-1">{{ selectedStudent.nama }}</p>
+                </div>
+                <div class="flex justify-center mb-8">
+                    <div v-if="selectedStudent.status === 'Diterima'" class="bg-green-100 text-green-800 px-6 py-3 rounded font-bold border border-green-300">DITERIMA</div>
+                    <div v-else-if="selectedStudent.status === 'Ditolak'" class="bg-red-100 text-red-800 px-6 py-3 rounded font-bold border border-red-300">TIDAK BERJAYA</div>
+                    <div v-else class="bg-yellow-100 text-yellow-800 px-6 py-3 rounded font-bold border border-yellow-300">DALAM PROSES</div>
+                </div>
+                <button v-if="selectedStudent.status === 'Diterima'" @click="printLetter(selectedStudent)" class="w-full bg-blue-700 text-white font-bold py-3 rounded mb-4">CETAK SURAT TAWARAN</button>
+                <button @click="currentView = 'login_selection'; parentSearchIC=''" class="w-full text-gray-500 underline">Kembali</button>
+            </div>
+        </div>
+
+    </main>
 </div>
 
 <script>
-    // --- GANTIKAN URL GOOGLE APPS SCRIPT ---
+    // --- GANTIKAN URL GOOGLE APPS SCRIPT ANDA ---
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbybidhTAnhK6qXKyyT3imBEqTt2pxUMAO-DrnhEBa2fAKcWVwzJiJwkiP_Zkn1hs3mc/exec'; 
 
     const { createApp } = Vue;
@@ -314,19 +330,15 @@
             // --- AUTO GRADUATE LOGIC ---
             checkAutoGraduation() {
                 const currentYear = new Date().getFullYear();
-                let needUpdate = false;
                 
                 this.existingStudents.forEach(std => {
-                    // Kira umur dari IC (2 digit pertama)
                     const icYear = parseInt(std.ic.substring(0, 2));
-                    // Jika IC 14xxxx -> Lahir 2014. Jika IC 09xxxx -> Lahir 2009.
-                    // Anggaran: Jika tahun > 50, anggap 19xx. Jika < 50, anggap 20xx.
+                    // Jika IC > 50 -> 19xx, jika < 50 -> 20xx
                     const fullYear = (icYear > 50) ? 1900 + icYear : 2000 + icYear;
                     const age = currentYear - fullYear;
 
                     if (age >= 13) {
                         console.log(`Auto-remove: ${std.nama} (Umur ${age})`);
-                        // Panggil API senyap-senyap untuk keluarkan pelajar
                         this.silentRemove(std, 'Tamat Darjah 6 / Naik Tingkatan');
                     }
                 });
@@ -385,32 +397,27 @@
                     const json = await res.json();
                     if (json.result === 'success') {
                         this.students = json.data;
-                        this.checkAutoGraduation(); // Run automation check
+                        this.checkAutoGraduation(); 
                     }
                 } catch (e) { console.error(e); } finally { this.isLoading = false; }
             },
 
             async handleFormSubmit() {
-                // ... (Logic upload fail dan submit sama seperti sebelum ini) ...
-                // Pastikan params.append('tahunMasuk', this.form.tahunMasuk); dihantar
                 this.isLoading = true;
-                // ... Logik upload ...
                 const params = new URLSearchParams();
                 params.append('action', 'insert');
                 for (const key in this.form) params.append(key, this.form[key]);
                 params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
-                params.append('tahunMasuk', this.form.tahunMasuk); // Penting!
+                params.append('tahunMasuk', this.form.tahunMasuk);
 
                 try {
                     await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
                     alert('Berjaya!');
-                    // Reset
                     this.form = { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '' };
                     setTimeout(() => { this.fetchStudents(); }, 2000);
                 } catch (e) { alert('Ralat'); } finally { this.isLoading = false; }
             },
 
-            // ... (Fungsi adminLogin, printLetter, updateStatus kekal sama) ...
             async adminLogin() {
                 if ((this.loginForm.id === '01115864913' && this.loginForm.pass === '01115864913') || this.loginForm.pass === 'Ybb4412') {
                     this.currentUser = { role: 'admin', name: 'Admin' };
@@ -425,6 +432,57 @@
                      await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`, { mode: 'no-cors' });
                      std.status = newStatus;
                  } catch(e) {} finally { this.isLoading = false; }
+            },
+            async parentCheck() {
+                if (!this.students.length) await this.fetchStudents();
+                const input = this.parentSearchIC.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                const found = this.students.find(s => String(s.ic).replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === input);
+                if (found) { this.selectedStudent = found; this.currentView = 'parent_result'; } else { alert('Rekod tiada.'); }
+            },
+            printLetter(std) {
+                const doc = new jsPDF();
+                
+                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 15, null, null, "center");
+                doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 20, null, null, "center");
+                doc.text("YBB 4412 | Tel: 085-737-005", 105, 25, null, null, "center");
+                doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
+
+                doc.text(`Ruj: SKBN.T.700-10/2/1`, 140, 40);
+                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 45);
+                
+                doc.text(std.namaBapa || "Ibu Bapa/Penjaga", 20, 50);
+                doc.text(std.alamat || '', 20, 55);
+
+                let y = 75;
+                doc.setFont("helvetica", "bold");
+                doc.text("TAWARAN MASUK KE ASRAMA SK BATU NIAH", 20, y);
+                doc.setLineWidth(0.2); doc.line(20, y+2, 120, y+2);
+
+                y += 10;
+                doc.setFont("helvetica", "normal");
+                const body = `Sukacita dimaklumkan bahawa anak jagaan Tuan/Puan, ${std.nama} (${std.ic}) dari kelas ${std.kelas} telah ditawarkan menduduki asrama bagi sesi tahun ini.`;
+                doc.text(doc.splitTextToSize(body, 170), 20, y);
+                
+                y += 20;
+                const contact = "Sila hubungi Warden Asrama (011-6488-2868) atau Penyelia Asrama (0111-586-4913) untuk pertanyaan lanjut.";
+                doc.text(doc.splitTextToSize(contact, 170), 20, y);
+
+                y += 20;
+                doc.text("Sekian, terima kasih.", 20, y);
+                
+                y += 15;
+                doc.setFont("helvetica", "bold");
+                doc.text('"BERKHIDMAT UNTUK NEGARA"', 20, y);
+                
+                y += 20;
+                doc.setFont("helvetica", "normal");
+                doc.text("(GURU BESAR)", 20, y);
+                doc.text("SK Batu Niah", 20, y+5);
+
+                doc.autoPrint();
+                window.open(doc.output('bloburl'), '_blank');
             }
         }
     }).mount('#app');
