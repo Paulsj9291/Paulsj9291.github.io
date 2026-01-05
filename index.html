@@ -87,7 +87,7 @@
 
             <div class="flex border-b mb-4">
                 <button @click="activeTab = 'list'" :class="activeTab === 'list' ? 'border-blue-600 text-blue-600' : 'text-gray-500'" class="px-4 py-2 border-b-2 font-medium">Senarai Pelajar</button>
-                <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'border-blue-600 text-blue-600' : 'text-gray-500'" class="px-4 py-2 border-b-2 font-medium">Key-in Baru</button>
+                <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'border-blue-600 text-blue-600' : 'text-gray-500'" class="px-4 py-2 border-b-2 font-medium">Permohonan Baru</button>
             </div>
 
             <div v-if="activeTab === 'list'" class="bg-white rounded shadow overflow-x-auto">
@@ -183,11 +183,11 @@
                         <div class="bg-gray-50 p-3 rounded border border-gray-200">
                             <h4 class="font-bold text-gray-700 text-sm mb-3">Maklumat Waris</h4>
                             <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Nama Bapa/Penjaga</label>
+                                <label class="text-xs font-bold text-gray-600">Nama Ibubapa/Penjaga</label>
                                 <input v-model="form.namaBapa" required class="w-full border p-2 rounded text-sm uppercase">
                             </div>
                             <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">No. KP Bapa</label>
+                                <label class="text-xs font-bold text-gray-600">No. Ibubapa/Penjaga</label>
                                 <input v-model="form.icBapa" class="w-full border p-2 rounded text-sm">
                             </div>
                             <div>
@@ -500,5 +500,6 @@
 </script>
 </body>
 </html>
+
 
 
