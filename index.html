@@ -27,23 +27,52 @@
     </div>
 
     <transition name="modal">
+        <div v-if="showPromoteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="font-bold text-lg text-blue-900"><i class="fa-solid fa-graduation-cap mr-2"></i>Naik Kelas</h3>
+                    <button @click="showPromoteModal = false"><i class="fa-solid fa-times"></i></button>
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded mb-4 text-sm">
+                    <p>Pelajar: <b>{{ promoteData.nama }}</b></p>
+                    <p>Kelas Semasa: <span class="text-red-600 font-bold">{{ promoteData.currentClass }}</span></p>
+                </div>
+
+                <div v-if="promoteData.isGraduating" class="text-center p-4 bg-green-100 rounded border border-green-300">
+                    <p class="font-bold text-green-800">Pelajar Tamat Darjah 6</p>
+                    <p class="text-xs mt-1">Pelajar ini akan dipindahkan ke senarai "Bekas Pelajar" sebagai Tamat Sekolah.</p>
+                </div>
+
+                <div v-else>
+                    <label class="block text-xs font-bold text-gray-600 mb-2">Pilih Kelas Tahun Baru ({{ promoteData.nextYearVal }}):</label>
+                    <select v-model="promoteData.selectedClassType" class="w-full border p-2 rounded mb-4">
+                        <option value="Cemerlang">Cemerlang</option>
+                        <option value="Gemilang">Gemilang</option>
+                    </select>
+                    <p class="text-sm text-gray-600">Kelas Baru: <b>{{ promoteData.nextYearVal }} {{ promoteData.selectedClassType }}</b></p>
+                </div>
+
+                <div class="flex justify-end gap-2 mt-6">
+                    <button @click="showPromoteModal = false" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded text-sm">Batal</button>
+                    <button @click="confirmPromote" class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700 text-sm">
+                        {{ promoteData.isGraduating ? 'Tamatkan Sekolah' : 'Sahkan Naik Kelas' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </transition>
+
+    <transition name="modal">
         <div v-if="showRemoveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
                 <h3 class="font-bold text-lg mb-4 text-red-700 border-b pb-2">Pengeluaran Pelajar</h3>
-                <p class="mb-4 text-sm">Sila pilih sebab <b>{{ selectedRemoveStudent?.nama }}</b> dikeluarkan:</p>
-                
+                <p class="mb-4 text-sm">Sebab <b>{{ selectedRemoveStudent?.nama }}</b> dikeluarkan:</p>
                 <div class="space-y-3">
-                    <button @click="confirmRemove('Masalah Disiplin')" class="w-full text-left px-4 py-3 border rounded hover:bg-red-50 hover:border-red-500 font-medium text-sm">
-                        1. Dikeluarkan kerana Masalah Disiplin
-                    </button>
-                    <button @click="confirmRemove('Berhenti / Pindah Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-yellow-50 hover:border-yellow-500 font-medium text-sm">
-                        2. Pelajar Memohon Keluar / Pindah
-                    </button>
-                    <button @click="confirmRemove('Tamat Darjah 6')" class="w-full text-left px-4 py-3 border rounded hover:bg-blue-50 hover:border-blue-500 font-medium text-sm">
-                        3. Tamat Darjah 6 / Naik Tingkatan
-                    </button>
+                    <button @click="confirmRemove('Masalah Disiplin')" class="w-full text-left px-4 py-3 border rounded hover:bg-red-50 font-medium text-sm">1. Masalah Disiplin</button>
+                    <button @click="confirmRemove('Berhenti / Pindah Sekolah')" class="w-full text-left px-4 py-3 border rounded hover:bg-yellow-50 font-medium text-sm">2. Memohon Keluar / Pindah</button>
+                    <button @click="confirmRemove('Tamat Darjah 6')" class="w-full text-left px-4 py-3 border rounded hover:bg-blue-50 font-medium text-sm">3. Tamat Darjah 6 / Naik Tingkatan</button>
                 </div>
-
                 <button @click="showRemoveModal = false" class="mt-6 w-full text-gray-500 py-2 hover:text-gray-800 text-sm">Batal</button>
             </div>
         </div>
@@ -58,23 +87,71 @@
                 </div>
                 <form @submit.prevent="submitEdit" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="col-span-2 bg-blue-50 p-3 rounded border">
+                        <h4 class="font-bold text-blue-800 text-xs mb-2">MAKLUMAT PELAJAR</h4>
                         <div class="grid md:grid-cols-2 gap-3">
                             <input v-model="editForm.nama" placeholder="Nama Penuh" class="border p-2 rounded text-sm uppercase col-span-2">
                             <input v-model="editForm.ic" placeholder="No. ID" class="border p-2 rounded text-sm">
                             <input v-model="editForm.kelas" placeholder="Kelas" class="border p-2 rounded text-sm">
                             <select v-model="editForm.jantina" class="border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
-                            
-                            <div>
-                                <label class="text-[10px] text-gray-500 uppercase font-bold">Tahun Masuk Asrama</label>
-                                <input v-model="editForm.tahunMasuk" type="number" placeholder="YYYY" class="w-full border p-2 rounded text-sm">
-                            </div>
+                            <select v-model="editForm.agama" class="border p-2 rounded text-sm"><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Lain-lain</option></select>
+                            <input v-model="editForm.tahunMasuk" type="number" placeholder="Tahun Masuk" class="border p-2 rounded text-sm">
                         </div>
+                        <textarea v-model="editForm.alamat" placeholder="Alamat Penuh" rows="2" class="w-full border p-2 rounded text-sm mt-2"></textarea>
                     </div>
-                     <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
+
+                    <div class="col-span-2 bg-gray-50 p-3 rounded border">
+                         <h4 class="font-bold text-gray-800 text-xs mb-2">MAKLUMAT WARIS</h4>
+                         <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="editForm.namaBapa" placeholder="Nama Bapa" class="border p-2 rounded text-sm uppercase">
+                            <input v-model="editForm.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
+                            <input v-model="editForm.noTel" placeholder="No. Tel" class="border p-2 rounded text-sm col-span-2">
+                         </div>
+                    </div>
+
+                    <div class="col-span-2 bg-red-50 p-3 rounded border">
+                        <h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                           <div>
+                               <label class="text-[10px] text-gray-500">Penyakit</label>
+                               <input list="listPenyakit" v-model="editForm.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Pilih / Taip baru">
+                               <datalist id="listPenyakit">
+                                   <option v-for="p in diseaseList" :value="p"></option>
+                               </datalist>
+                           </div>
+                           <div>
+                               <label class="text-[10px] text-gray-500">Alahan</label>
+                               <input list="listAlahan" v-model="editForm.alahan" class="w-full border p-2 rounded text-sm" placeholder="Pilih / Taip baru">
+                               <datalist id="listAlahan">
+                                   <option v-for="a in allergyList" :value="a"></option>
+                               </datalist>
+                           </div>
+                        </div>
+                   </div>
+
+                    <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
                         <button type="button" @click="showEditModal = false" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Simpan</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Simpan Perubahan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </transition>
+
+    <transition name="modal">
+        <div v-if="showDocModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="font-bold text-lg mb-4 text-blue-900 border-b pb-2">Dokumen Pelajar</h3>
+                <div class="space-y-3">
+                    <a :href="selectedDocStudent?.urlGambar" target="_blank" v-if="selectedDocStudent?.urlGambar" class="block w-full text-center bg-blue-50 text-blue-700 py-2 rounded hover:bg-blue-100 border border-blue-200"><i class="fa-solid fa-image mr-2"></i> Gambar Pasport</a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded text-sm">Tiada Gambar</span>
+
+                    <a :href="selectedDocStudent?.urlSijil" target="_blank" v-if="selectedDocStudent?.urlSijil" class="block w-full text-center bg-green-50 text-green-700 py-2 rounded hover:bg-green-100 border border-green-200"><i class="fa-solid fa-file-alt mr-2"></i> Sijil Lahir / MyKid</a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded text-sm">Tiada Sijil Lahir</span>
+
+                    <a :href="selectedDocStudent?.urlIC" target="_blank" v-if="selectedDocStudent?.urlIC" class="block w-full text-center bg-purple-50 text-purple-700 py-2 rounded hover:bg-purple-100 border border-purple-200"><i class="fa-solid fa-id-card mr-2"></i> Kad Pengenalan Waris</a>
+                    <span v-else class="block w-full text-center bg-gray-100 text-gray-400 py-2 rounded text-sm">Tiada Salinan IC</span>
+                </div>
+                <button @click="showDocModal = false" class="mt-6 w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">Tutup</button>
             </div>
         </div>
     </transition>
@@ -145,8 +222,8 @@
                     <thead class="bg-green-50">
                         <tr>
                             <th class="px-4 py-2">Pelajar</th>
-                            <th class="px-4 py-2">Tempoh</th>
-                            <th class="px-4 py-2">Dokumen</th>
+                            <th class="px-4 py-2">Info Tambahan</th>
+                            <th class="px-4 py-2">Fail</th>
                             <th class="px-4 py-2">Tindakan</th>
                         </tr>
                     </thead>
@@ -158,16 +235,20 @@
                                 <div class="text-xs font-semibold text-green-600">{{ std.kelas }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="text-xs font-bold">Masuk: {{ std.tahunMasuk || '-' }}</div>
-                                <div class="text-xs text-gray-500">{{ calculateDuration(std.tahunMasuk) }}</div>
+                                <div class="text-[10px]"><i class="fa-solid fa-house mr-1"></i>Masuk: {{ std.tahunMasuk || '-' }}</div>
+                                <div class="text-[10px] text-gray-500">{{ calculateDuration(std.tahunMasuk) }}</div>
+                                <div class="text-[10px] mt-1" v-if="std.penyakit && std.penyakit !== 'Tiada'"><span class="text-red-600 font-bold">!</span> {{ std.penyakit }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <button v-if="std.urlGambar" @click="window.open(std.urlGambar)" class="text-blue-600 text-xs underline">Gambar</button>
+                                <button @click="openDocModal(std)" class="text-blue-600 text-xs underline bg-blue-50 px-2 py-1 rounded">Lihat</button>
                             </td>
                             <td class="px-4 py-3 flex gap-2">
-                                <button @click="openEditModal(std)" class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 text-xs"><i class="fa-solid fa-pen"></i></button>
-                                <button @click="openRemoveModal(std)" class="text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 text-xs"><i class="fa-solid fa-trash-can"></i> Keluar</button>
-                                <button @click="printLetter(std)" class="text-gray-600 border px-2 py-1 rounded hover:bg-gray-100 text-xs"><i class="fa-solid fa-print"></i></button>
+                                <button @click="openPromoteModal(std)" class="text-purple-600 border border-purple-200 px-2 py-1 rounded hover:bg-purple-50 text-xs flex items-center gap-1" title="Naik Kelas">
+                                    <i class="fa-solid fa-arrow-up-right-dots"></i>
+                                </button>
+                                <button @click="openEditModal(std)" class="text-blue-600 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50 text-xs" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                <button @click="openRemoveModal(std)" class="text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50 text-xs" title="Keluar"><i class="fa-solid fa-user-minus"></i></button>
+                                <button @click="printLetter(std)" class="text-gray-600 border px-2 py-1 rounded hover:bg-gray-100 text-xs" title="Cetak"><i class="fa-solid fa-print"></i></button>
                             </td>
                         </tr>
                     </tbody>
@@ -177,26 +258,18 @@
             <div v-if="activeTab === 'archive'" class="bg-white rounded shadow overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-100 text-gray-500">
-                        <tr>
-                            <th class="px-4 py-2">Pelajar</th>
-                            <th class="px-4 py-2">Sebab Keluar</th>
-                            <th class="px-4 py-2">Tarikh Rekod</th>
-                        </tr>
+                        <tr><th>Pelajar</th><th>Sebab Keluar</th><th>Tarikh</th></tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200">
+                    <tbody>
                         <tr v-for="std in archivedStudents" :key="std.ic">
                             <td class="px-4 py-3">
                                 <div class="font-bold text-gray-700">{{ std.nama }}</div>
                                 <div class="text-xs text-gray-500">{{ std.ic }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span v-if="std.sebabKeluar && std.sebabKeluar.includes('Disiplin')" class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
-                                <span v-else-if="std.sebabKeluar && std.sebabKeluar.includes('Tamat')" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar }}</span>
-                                <span v-else class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar || 'Tiada Rekod' }}</span>
+                                <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ std.sebabKeluar || 'Tiada Rekod' }}</span>
                             </td>
-                            <td class="px-4 py-3 text-xs text-gray-500">
-                                {{ formatDate(std.tarikhKeluar) }}
-                            </td>
+                            <td class="px-4 py-3 text-xs text-gray-500">{{ formatDate(std.tarikhKeluar) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -204,18 +277,15 @@
 
             <div v-if="activeTab === 'new'" class="bg-white rounded shadow overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-blue-50">
-                        <tr><th>Pelajar</th><th>Dokumen</th><th>Tindakan</th></tr>
-                    </thead>
+                    <thead class="bg-blue-50"><tr><th>Pelajar</th><th>Dokumen</th><th>Tindakan</th></tr></thead>
                     <tbody>
                         <tr v-for="std in newApplicants" :key="std.ic">
                             <td class="px-4 py-3">
                                 <div class="font-bold">{{ std.nama }}</div>
                                 <div class="text-xs text-gray-500">{{ std.ic }}</div>
+                                <div class="text-xs">{{ std.kelas }}</div>
                             </td>
-                            <td class="px-4 py-3">
-                                <button v-if="std.urlGambar" @click="window.open(std.urlGambar)" class="text-blue-600 underline text-xs">Lihat Fail</button>
-                            </td>
+                            <td class="px-4 py-3"><button @click="openDocModal(std)" class="text-blue-600 underline text-xs">Lihat Fail</button></td>
                             <td class="px-4 py-3 flex gap-1">
                                 <button @click="updateStatus(std, 'Diterima')" class="bg-green-600 text-white px-2 py-1 rounded text-xs">Lulus</button>
                                 <button @click="updateStatus(std, 'Ditolak')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Tolak</button>
@@ -231,42 +301,63 @@
                     <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="existing"> <span class="font-bold text-green-700">Pelajar Lama</span></label>
                 </div>
                 <form @submit.prevent="handleFormSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input v-model="form.nama" placeholder="NAMA PENUH" required class="border p-2 rounded text-sm uppercase col-span-2">
-                    <input v-model="form.ic" @blur="autoDetectGender('form')" placeholder="No. ID" required class="border p-2 rounded text-sm">
-                    <div class="flex gap-2">
-                        <select v-model="form.kelas" class="w-1/2 border p-2 rounded text-sm"><option value="" disabled>Kelas</option><option v-for="c in generatedClasses" :value="c">{{ c }}</option></select>
-                        <input v-if="entryType === 'existing'" v-model="form.tahunMasuk" type="number" placeholder="Tahun Masuk (YYYY)" class="w-1/2 border p-2 rounded text-sm">
+                    <div class="col-span-2 bg-blue-50 p-3 rounded border">
+                        <h4 class="font-bold text-blue-800 text-xs mb-2">MAKLUMAT PELAJAR</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="form.nama" placeholder="NAMA PENUH" required class="border p-2 rounded text-sm uppercase col-span-2">
+                            <input v-model="form.ic" @blur="autoDetectGender('form')" placeholder="No. ID" required class="border p-2 rounded text-sm">
+                            <div class="flex gap-2">
+                                <select v-model="form.kelas" class="w-1/2 border p-2 rounded text-sm"><option value="" disabled>Kelas</option><option v-for="c in generatedClasses" :value="c">{{ c }}</option></select>
+                                <select v-model="form.jantina" class="w-1/2 border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
+                            </div>
+                            <select v-model="form.agama" class="border p-2 rounded text-sm"><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Lain-lain</option></select>
+                            <input v-if="entryType === 'existing'" v-model="form.tahunMasuk" type="number" placeholder="Tahun Masuk (YYYY)" class="border p-2 rounded text-sm">
+                        </div>
+                        <textarea v-model="form.alamat" placeholder="Alamat Penuh" rows="2" class="w-full border p-2 rounded text-sm mt-2"></textarea>
                     </div>
-                    <input v-model="form.namaBapa" placeholder="Nama Bapa" required class="border p-2 rounded text-sm uppercase">
-                    <input v-model="form.noTel" placeholder="No. Tel" required class="border p-2 rounded text-sm">
+
+                    <div class="col-span-2 bg-gray-50 p-3 rounded border">
+                         <h4 class="font-bold text-gray-800 text-xs mb-2">MAKLUMAT WARIS</h4>
+                         <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="form.namaBapa" placeholder="Nama Bapa" required class="border p-2 rounded text-sm uppercase">
+                            <input v-model="form.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
+                            <input v-model="form.noTel" placeholder="No. Tel" required class="border p-2 rounded text-sm col-span-2">
+                         </div>
+                    </div>
+
+                    <div class="col-span-2 bg-red-50 p-3 rounded border">
+                        <h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                           <div>
+                               <label class="text-[10px]">Penyakit</label>
+                               <input list="listPenyakit" v-model="form.penyakit" class="w-full border p-2 rounded text-sm" placeholder="Taip/Pilih">
+                           </div>
+                           <div>
+                               <label class="text-[10px]">Alahan</label>
+                               <input list="listAlahan" v-model="form.alahan" class="w-full border p-2 rounded text-sm" placeholder="Taip/Pilih">
+                           </div>
+                        </div>
+                   </div>
+
+                   <div class="col-span-2 border-t pt-2 mt-2">
+                        <h4 class="font-bold text-sm text-blue-800 mb-2">Muat Naik Dokumen</h4>
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div class="border border-dashed p-2 bg-gray-50"><label class="text-[10px]">Gambar</label><input type="file" @change="handleFile($event, 'fileGambar')" class="text-[10px] w-full"></div>
+                            <div class="border border-dashed p-2 bg-gray-50"><label class="text-[10px]">Sijil Lahir</label><input type="file" @change="handleFile($event, 'fileSijil')" class="text-[10px] w-full"></div>
+                            <div class="border border-dashed p-2 bg-gray-50"><label class="text-[10px]">IC Waris</label><input type="file" @change="handleFile($event, 'fileIC')" class="text-[10px] w-full"></div>
+                        </div>
+                   </div>
                     
-                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-3 rounded mt-2">Simpan Data</button>
+                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-3 rounded mt-2 hover:bg-blue-700">Simpan Data</button>
                 </form>
             </div>
         </div>
         
-        <div v-if="currentView === 'parent_result'" class="flex justify-center">
-            <div class="bg-white w-full max-w-2xl p-8 rounded shadow-xl border-t-8 border-blue-900">
-                <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold">Status Permohonan</h2>
-                    <p class="text-gray-500 mt-1">{{ selectedStudent.nama }}</p>
-                </div>
-                <div class="flex justify-center mb-8">
-                    <div v-if="selectedStudent.status === 'Diterima'" class="bg-green-100 text-green-800 px-6 py-3 rounded font-bold border border-green-300">DITERIMA</div>
-                    <div v-else-if="selectedStudent.status === 'Ditolak'" class="bg-red-100 text-red-800 px-6 py-3 rounded font-bold border border-red-300">TIDAK BERJAYA</div>
-                    <div v-else class="bg-yellow-100 text-yellow-800 px-6 py-3 rounded font-bold border border-yellow-300">DALAM PROSES</div>
-                </div>
-                <button v-if="selectedStudent.status === 'Diterima'" @click="printLetter(selectedStudent)" class="w-full bg-blue-700 text-white font-bold py-3 rounded mb-4">CETAK SURAT TAWARAN</button>
-                <button @click="currentView = 'login_selection'; parentSearchIC=''" class="w-full text-gray-500 underline">Kembali</button>
-            </div>
-        </div>
-
-    </main>
+        </main>
 </div>
 
 <script>
-    // --- GANTIKAN URL GOOGLE APPS SCRIPT ANDA ---
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbybidhTAnhK6qXKyyT3imBEqTt2pxUMAO-DrnhEBa2fAKcWVwzJiJwkiP_Zkn1hs3mc/exec'; 
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxvT2x7b3tsc3kVH_2cn2x2F498Comxeef_nJoaoYwsa_BO2da_Mvh62ylEV3H2gkdu/exec'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -280,6 +371,8 @@
                 loadingText: 'Sedang memproses...',
                 showRemoveModal: false,
                 showEditModal: false,
+                showDocModal: false,
+                showPromoteModal: false, // New Modal
                 
                 loginForm: { id: '', pass: '' },
                 currentUser: { role: '', name: '' },
@@ -287,11 +380,23 @@
                 students: [],
                 selectedStudent: null,
                 selectedRemoveStudent: null,
+                selectedDocStudent: null,
                 
+                // Promote Data
+                promoteData: {
+                    ic: '', nama: '', currentClass: '',
+                    nextYearVal: '', selectedClassType: 'Cemerlang',
+                    isGraduating: false
+                },
+
                 entryType: 'new',
                 form: { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' },
+                files: { fileGambar: null, fileSijil: null, fileIC: null },
                 editForm: {}, originalEditIC: '',
-                generatedClasses: []
+                
+                generatedClasses: [],
+                diseaseList: [], // Auto-populated
+                allergyList: []  // Auto-populated
             }
         },
         computed: {
@@ -326,94 +431,190 @@
                 if(!dateStr) return '-';
                 return new Date(dateStr).toLocaleDateString('ms-MY');
             },
+            
+            // --- POPULATE AUTO-COMPLETE LISTS ---
+            populateLists() {
+                const diseases = new Set(['Tiada']);
+                const allergies = new Set(['Tiada']);
+                this.students.forEach(s => {
+                    if (s.penyakit) diseases.add(s.penyakit);
+                    if (s.alahan) allergies.add(s.alahan);
+                });
+                this.diseaseList = Array.from(diseases);
+                this.allergyList = Array.from(allergies);
+            },
 
-            // --- AUTO GRADUATE LOGIC ---
+            // --- PROMOTE LOGIC (NAIK KELAS) ---
+            openPromoteModal(std) {
+                // Parse Class: e.g., "1 Cemerlang" -> Year: 1
+                const parts = std.kelas.split(' ');
+                const currentYear = parseInt(parts[0]); // 1
+                
+                this.promoteData.ic = std.ic;
+                this.promoteData.nama = std.nama;
+                this.promoteData.currentClass = std.kelas;
+                
+                // Logic Next Year
+                if (!isNaN(currentYear)) {
+                    const next = currentYear + 1;
+                    if (next > 6) {
+                        this.promoteData.isGraduating = true;
+                        this.promoteData.nextYearVal = 'Tamat';
+                    } else {
+                        this.promoteData.isGraduating = false;
+                        this.promoteData.nextYearVal = next; // 2
+                        // Auto-select class type based on current
+                        if (std.kelas.includes("Gemilang")) this.promoteData.selectedClassType = "Gemilang";
+                        else this.promoteData.selectedClassType = "Cemerlang";
+                    }
+                } else {
+                    alert('Format kelas tidak sah. Sila edit kelas dahulu.');
+                    return;
+                }
+                this.showPromoteModal = true;
+            },
+
+            async confirmPromote() {
+                this.isLoading = true; this.loadingText = "Mengemaskini kelas...";
+                
+                // 1. Jika Tamat Sekolah (Darjah 6 -> Form 1)
+                if (this.promoteData.isGraduating) {
+                    await this.silentRemove({ic: this.promoteData.ic}, "Tamat Darjah 6 / Naik Tingkatan");
+                    this.showPromoteModal = false;
+                    this.isLoading = false;
+                    alert("Pelajar telah ditamatkan sekolah.");
+                    this.fetchStudents();
+                    return;
+                }
+
+                // 2. Jika Naik Kelas Biasa (1 -> 2)
+                const newClass = `${this.promoteData.nextYearVal} ${this.promoteData.selectedClassType}`;
+                const params = new URLSearchParams();
+                params.append('action', 'updateStudent');
+                params.append('original_ic', this.promoteData.ic);
+                
+                // Kita perlu hantar semua data lain supaya tak hilang, 
+                // TAPI kita hanya ada IC. Jadi kita kena cari student object dalam array.
+                const std = this.students.find(s => s.ic === this.promoteData.ic);
+                if(std) {
+                    // Update field kelas sahaja
+                    std.kelas = newClass;
+                    for (const key in std) {
+                        // Backend expect specific keys
+                        if(['nama','ic','kelas','jantina','agama','alamat','namaBapa','icBapa','noTel','alahan','penyakit'].includes(key)) {
+                             params.append(key, std[key]);
+                        }
+                    }
+                    try {
+                        await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
+                        alert(`Berjaya naik ke ${newClass}`);
+                        this.showPromoteModal = false;
+                        setTimeout(() => { this.fetchStudents(); }, 1500);
+                    } catch(e) { alert('Ralat: ' + e.message); }
+                }
+                this.isLoading = false;
+            },
+
+            // --- API READ ---
+            async fetchStudents() {
+                if (GAS_URL.includes('LETAKKAN')) { alert('Masukkan URL Script!'); return; }
+                this.isLoading = true; this.loadingText = "Membaca data...";
+                try {
+                    const res = await fetch(GAS_URL + '?action=read');
+                    const json = await res.json();
+                    if (json.result === 'success') {
+                        this.students = json.data;
+                        this.populateLists(); // Create dropdowns
+                        this.checkAutoGraduation(); 
+                    }
+                } catch (e) { console.error(e); } finally { this.isLoading = false; }
+            },
+
+            // --- Other Logic (Edit, Remove, Upload) same as before ---
+            openDocModal(std) { this.selectedDocStudent = std; this.showDocModal = true; },
+            
             checkAutoGraduation() {
                 const currentYear = new Date().getFullYear();
-                
                 this.existingStudents.forEach(std => {
                     const icYear = parseInt(std.ic.substring(0, 2));
-                    // Jika IC > 50 -> 19xx, jika < 50 -> 20xx
                     const fullYear = (icYear > 50) ? 1900 + icYear : 2000 + icYear;
                     const age = currentYear - fullYear;
-
                     if (age >= 13) {
                         console.log(`Auto-remove: ${std.nama} (Umur ${age})`);
                         this.silentRemove(std, 'Tamat Darjah 6 / Naik Tingkatan');
                     }
                 });
             },
-
             async silentRemove(std, reason) {
                 try {
                     await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=Bekas Pelajar&sebabKeluar=${encodeURIComponent(reason)}`, { mode: 'no-cors' });
                 } catch(e) { console.error(e); }
             },
-
-            // --- REMOVE MODAL LOGIC ---
-            openRemoveModal(std) {
-                this.selectedRemoveStudent = std;
-                this.showRemoveModal = true;
-            },
+            
+            openRemoveModal(std) { this.selectedRemoveStudent = std; this.showRemoveModal = true; },
             async confirmRemove(reason) {
-                this.isLoading = true;
-                this.loadingText = "Mengemaskini status...";
+                this.isLoading = true; 
                 try {
                     await fetch(`${GAS_URL}?action=updateStatus&ic=${this.selectedRemoveStudent.ic}&status=Bekas Pelajar&sebabKeluar=${encodeURIComponent(reason)}`, { mode: 'no-cors' });
-                    this.selectedRemoveStudent.status = 'Bekas Pelajar';
-                    this.selectedRemoveStudent.sebabKeluar = reason;
-                    this.showRemoveModal = false;
-                    alert('Pelajar berjaya dikeluarkan.');
-                } catch (e) { alert('Ralat: ' + e.message); } finally { this.isLoading = false; }
+                    this.showRemoveModal = false; alert('Berjaya.');
+                    this.fetchStudents();
+                } catch (e) { alert('Ralat'); } finally { this.isLoading = false; }
             },
 
-            // --- EDIT LOGIC ---
-            openEditModal(std) {
-                this.originalEditIC = std.ic;
-                this.editForm = { ...std };
-                this.showEditModal = true;
-            },
+            openEditModal(std) { this.originalEditIC = std.ic; this.editForm = { ...std }; this.showEditModal = true; },
             async submitEdit() {
                 this.isLoading = true;
                 const params = new URLSearchParams();
                 params.append('action', 'updateStudent');
                 params.append('original_ic', this.originalEditIC);
                 for (const key in this.editForm) params.append(key, this.editForm[key]);
-
                 try {
                     await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
                     alert('Data dikemaskini!');
                     this.showEditModal = false;
                     setTimeout(() => { this.fetchStudents(); }, 1500);
-                } catch (e) { alert('Ralat: ' + e.message); } finally { this.isLoading = false; }
+                } catch (e) { alert('Ralat'); } finally { this.isLoading = false; }
             },
 
-            // --- API & SUBMIT ---
-            async fetchStudents() {
-                if (GAS_URL.includes('LETAKKAN')) { alert('Masukkan URL Script!'); return; }
-                this.isLoading = true; 
-                try {
-                    const res = await fetch(GAS_URL + '?action=read');
-                    const json = await res.json();
-                    if (json.result === 'success') {
-                        this.students = json.data;
-                        this.checkAutoGraduation(); 
-                    }
-                } catch (e) { console.error(e); } finally { this.isLoading = false; }
+            handleFile(event, key) {
+                const file = event.target.files[0];
+                if (file) { if (file.size > 2 * 1024 * 1024) { alert('File > 2MB!'); return; } this.files[key] = file; }
+            },
+            toBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader(); reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result.split(',')[1]); reader.onerror = error => reject(error);
+                });
+            },
+            async uploadSingleFile(file, newName) {
+                const base64 = await this.toBase64(file);
+                const params = new URLSearchParams();
+                params.append('action', 'upload'); params.append('base64', base64);
+                params.append('mimeType', file.type); params.append('filename', newName);
+                const res = await fetch(GAS_URL, { method: 'POST', body: params });
+                const json = await res.json();
+                return json.result === 'success' ? json.url : '';
             },
 
             async handleFormSubmit() {
-                this.isLoading = true;
-                const params = new URLSearchParams();
-                params.append('action', 'insert');
-                for (const key in this.form) params.append(key, this.form[key]);
-                params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
-                params.append('tahunMasuk', this.form.tahunMasuk);
-
+                this.isLoading = true; this.loadingText = "Memuat naik dokumen...";
+                let urlGambar = '', urlSijil = '', urlIC = '';
                 try {
+                    if (this.files.fileGambar) urlGambar = await this.uploadSingleFile(this.files.fileGambar, `Gambar_${this.form.nama}`);
+                    if (this.files.fileSijil) urlSijil = await this.uploadSingleFile(this.files.fileSijil, `Sijil_${this.form.nama}`);
+                    if (this.files.fileIC) urlIC = await this.uploadSingleFile(this.files.fileIC, `ICWaris_${this.form.nama}`);
+                    
+                    this.loadingText = "Menyimpan data...";
+                    const params = new URLSearchParams();
+                    params.append('action', 'insert');
+                    for (const key in this.form) params.append(key, this.form[key]);
+                    params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
+                    params.append('urlGambar', urlGambar); params.append('urlSijil', urlSijil); params.append('urlIC', urlIC);
+                    
                     await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
                     alert('Berjaya!');
-                    this.form = { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '' };
+                    this.form = { nama: '', ic: '', kelas: '', jantina: '', tahunMasuk: new Date().getFullYear(), agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' };
+                    this.files = { fileGambar: null, fileSijil: null, fileIC: null };
                     setTimeout(() => { this.fetchStudents(); }, 2000);
                 } catch (e) { alert('Ralat'); } finally { this.isLoading = false; }
             },
@@ -431,6 +632,7 @@
                  try {
                      await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`, { mode: 'no-cors' });
                      std.status = newStatus;
+                     setTimeout(() => { this.fetchStudents(); }, 1000);
                  } catch(e) {} finally { this.isLoading = false; }
             },
             async parentCheck() {
@@ -440,47 +642,26 @@
                 if (found) { this.selectedStudent = found; this.currentView = 'parent_result'; } else { alert('Rekod tiada.'); }
             },
             printLetter(std) {
+                // ... (Kod cetak PDF kekal sama seperti sebelum ini) ...
                 const doc = new jsPDF();
-                
                 doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 15, null, null, "center");
-                doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 20, null, null, "center");
-                doc.text("YBB 4412 | Tel: 085-737-005", 105, 25, null, null, "center");
-                doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
-
-                doc.text(`Ruj: SKBN.T.700-10/2/1`, 140, 40);
-                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 45);
-                
-                doc.text(std.namaBapa || "Ibu Bapa/Penjaga", 20, 50);
-                doc.text(std.alamat || '', 20, 55);
-
-                let y = 75;
+                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 20, null, null, "center");
+                doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 26, null, null, "center");
+                doc.text("YBB 4412 | Tel: 085-737-005", 105, 31, null, null, "center");
+                doc.setLineWidth(0.5); doc.line(20, 35, 190, 35);
+                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 50);
+                doc.text(std.namaBapa || "Ibu Bapa/Penjaga", 20, 55);
+                doc.text(std.alamat || "Alamat", 20, 60);
                 doc.setFont("helvetica", "bold");
-                doc.text("TAWARAN MASUK KE ASRAMA SK BATU NIAH", 20, y);
-                doc.setLineWidth(0.2); doc.line(20, y+2, 120, y+2);
-
-                y += 10;
+                doc.text("TAWARAN MASUK KE ASRAMA", 20, 80);
                 doc.setFont("helvetica", "normal");
-                const body = `Sukacita dimaklumkan bahawa anak jagaan Tuan/Puan, ${std.nama} (${std.ic}) dari kelas ${std.kelas} telah ditawarkan menduduki asrama bagi sesi tahun ini.`;
-                doc.text(doc.splitTextToSize(body, 170), 20, y);
-                
-                y += 20;
-                const contact = "Sila hubungi Warden Asrama (011-6488-2868) atau Penyelia Asrama (0111-586-4913) untuk pertanyaan lanjut.";
-                doc.text(doc.splitTextToSize(contact, 170), 20, y);
-
-                y += 20;
-                doc.text("Sekian, terima kasih.", 20, y);
-                
-                y += 15;
+                const text = `Sukacita dimaklumkan bahawa anak tuan/puan, ${std.nama} (${std.ic}), telah berjaya ditawarkan tempat di asrama SK Batu Niah.`;
+                doc.text(doc.splitTextToSize(text, 170), 20, 90);
+                doc.text("Sila bawa surat ini semasa hari pendaftaran.", 20, 110);
                 doc.setFont("helvetica", "bold");
-                doc.text('"BERKHIDMAT UNTUK NEGARA"', 20, y);
-                
-                y += 20;
-                doc.setFont("helvetica", "normal");
-                doc.text("(GURU BESAR)", 20, y);
-                doc.text("SK Batu Niah", 20, y+5);
-
+                doc.text("GURU BESAR", 20, 140);
+                doc.text("SK Batu Niah", 20, 145);
                 doc.autoPrint();
                 window.open(doc.output('bloburl'), '_blank');
             }
