@@ -7,18 +7,73 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Modal Transition */
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-<div id="app" class="flex flex-col min-h-screen">
+<div id="app" class="flex flex-col min-h-screen relative">
 
-    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
+    <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+        <div class="bg-white p-5 rounded-lg flex items-center gap-3 shadow-xl">
+            <div class="loader"></div>
+            <span class="font-semibold text-gray-700">Sedang memproses...</span>
+        </div>
+    </div>
+
+    <transition name="modal">
+        <div v-if="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                <div class="bg-blue-900 text-white p-4 flex justify-between items-center sticky top-0">
+                    <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2"></i>Kemaskini Maklumat Pelajar</h3>
+                    <button @click="closeEditModal" class="hover:text-red-300"><i class="fa-solid fa-times text-xl"></i></button>
+                </div>
+                
+                <form @submit.prevent="submitEdit" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="col-span-2 bg-blue-50 p-3 rounded border"><h4 class="font-bold text-blue-800 text-xs mb-2">PELAJAR</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="editForm.nama" placeholder="Nama Penuh" class="border p-2 rounded text-sm uppercase col-span-2">
+                            <input v-model="editForm.ic" placeholder="No. ID" class="border p-2 rounded text-sm">
+                            <input v-model="editForm.kelas" placeholder="Kelas" class="border p-2 rounded text-sm">
+                            <select v-model="editForm.jantina" class="border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
+                            <input v-model="editForm.agama" placeholder="Agama" class="border p-2 rounded text-sm">
+                        </div>
+                        <textarea v-model="editForm.alamat" placeholder="Alamat" rows="2" class="w-full border p-2 rounded text-sm mt-2"></textarea>
+                    </div>
+
+                    <div class="col-span-2 bg-gray-50 p-3 rounded border"><h4 class="font-bold text-gray-800 text-xs mb-2">WARIS</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="editForm.namaBapa" placeholder="Nama Bapa" class="border p-2 rounded text-sm uppercase">
+                            <input v-model="editForm.icBapa" placeholder="IC Bapa" class="border p-2 rounded text-sm">
+                            <input v-model="editForm.noTel" placeholder="No. Tel" class="border p-2 rounded text-sm col-span-2">
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 bg-red-50 p-3 rounded border"><h4 class="font-bold text-red-800 text-xs mb-2">KESIHATAN</h4>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <input v-model="editForm.penyakit" placeholder="Penyakit" class="border p-2 rounded text-sm">
+                            <input v-model="editForm.alahan" placeholder="Alahan" class="border p-2 rounded text-sm">
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t">
+                        <button type="button" @click="closeEditModal" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Batal</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </transition>
+
+    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3 cursor-pointer" @click="goHome">
                 <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-900 font-bold border-2 border-yellow-400">SK</div>
@@ -36,15 +91,8 @@
 
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
         
-        <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-5 rounded-lg flex items-center gap-3 shadow-xl">
-                <div class="loader"></div>
-                <span class="font-semibold text-gray-700">Sedang memproses data...</span>
-            </div>
-        </div>
-
         <div v-if="currentView === 'login_selection'" class="flex flex-col items-center justify-center min-h-[60vh]">
-            <h2 class="text-3xl font-bold text-blue-900 mb-8 text-center">Sistem Permohonan Asrama</h2>
+            <h2 class="text-3xl font-bold text-blue-900 mb-8 text-center">Sistem Pengurusan Asrama</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
                 <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-blue-600">
                     <h3 class="text-xl font-bold mb-4 text-center text-blue-900"><i class="fa-solid fa-user-shield mr-2"></i>Unit Pengurusan</h3>
@@ -68,166 +116,100 @@
         <div v-if="currentView === 'admin_dashboard'">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-                    <p class="text-xs font-bold text-gray-500">JUMLAH PEMOHON</p>
-                    <p class="text-2xl font-bold">{{ students.length }}</p>
+                    <p class="text-xs font-bold text-gray-500">BARU</p>
+                    <p class="text-2xl font-bold">{{ newApplicants.length }}</p>
                 </div>
                 <div class="bg-white p-4 rounded shadow border-l-4 border-green-500">
                     <p class="text-xs font-bold text-gray-500">DITERIMA</p>
-                    <p class="text-2xl font-bold">{{ countStatus('Diterima') }}</p>
+                    <p class="text-2xl font-bold">{{ existingStudents.length }}</p>
                 </div>
                 <div class="bg-white p-4 rounded shadow border-l-4 border-yellow-500">
-                    <p class="text-xs font-bold text-gray-500">SIMPANAN</p>
-                    <p class="text-2xl font-bold">{{ countStatus('Simpanan') }}</p>
+                    <p class="text-xs font-bold text-gray-500">KIV</p>
+                    <p class="text-2xl font-bold">{{ kivStudents.length }}</p>
                 </div>
                 <div class="bg-white p-4 rounded shadow cursor-pointer hover:bg-blue-50" @click="fetchStudents">
                     <p class="text-xs font-bold text-gray-500">DATABASE</p>
-                    <p class="text-sm font-bold text-blue-600 mt-1"><i class="fa-solid fa-rotate mr-1"></i> Refresh Data</p>
+                    <p class="text-sm font-bold text-blue-600 mt-1"><i class="fa-solid fa-rotate mr-1"></i> Refresh</p>
                 </div>
             </div>
 
-            <div class="flex border-b mb-4">
-                <button @click="activeTab = 'list'" :class="activeTab === 'list' ? 'border-blue-600 text-blue-600' : 'text-gray-500'" class="px-4 py-2 border-b-2 font-medium">Senarai Pelajar</button>
-                <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'border-blue-600 text-blue-600' : 'text-gray-500'" class="px-4 py-2 border-b-2 font-medium">Permohonan Baru</button>
+            <div class="flex border-b mb-4 overflow-x-auto">
+                <button @click="activeTab = 'new'" :class="activeTab === 'new' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-inbox mr-2"></i>Permohonan Baru</button>
+                <button @click="activeTab = 'current'" :class="activeTab === 'current' ? 'border-green-600 text-green-600 bg-green-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-users mr-2"></i>Pelajar Semasa</button>
+                <button @click="activeTab = 'add'" :class="activeTab === 'add' ? 'border-purple-600 text-purple-600 bg-purple-50' : 'text-gray-500'" class="px-6 py-3 border-b-2 font-bold whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i>Daftar Baru</button>
             </div>
 
-            <div v-if="activeTab === 'list'" class="bg-white rounded shadow overflow-x-auto">
+            <div v-if="activeTab === 'new' || activeTab === 'current'" class="bg-white rounded shadow overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-100">
+                    <thead :class="activeTab === 'new' ? 'bg-blue-50' : 'bg-green-50'">
                         <tr>
                             <th class="px-4 py-2 text-left">Pelajar</th>
-                            <th class="px-4 py-2 text-left">Maklumat Waris & Nombor Telefon</th>
-                            <th class="px-4 py-2 text-left">Rekod Kesihatan</th>
-                            <th class="px-4 py-2 text-left">Status</th>
-                            <th class="px-4 py-2 text-left">Tindakan</th>
+                            <th class="px-4 py-2 text-left">Waris</th>
+                            <th class="px-4 py-2 text-left">Info</th>
+                            <th class="px-4 py-2 text-left w-48">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <tr v-for="std in students" :key="std.ic">
+                        <tr v-for="std in (activeTab === 'new' ? newApplicants : existingStudents)" :key="std.ic">
                             <td class="px-4 py-3">
                                 <div class="font-bold">{{ std.nama }}</div>
                                 <div class="text-xs text-gray-500">{{ std.ic }}</div>
-                                <div class="text-xs text-blue-600">{{ std.kelas }} ({{ std.jantina }})</div>
-                                <div class="text-xs text-gray-400 italic">Agama: {{ std.agama }}</div>
+                                <div class="text-xs font-semibold">{{ std.kelas }}</div>
                             </td>
                             <td class="px-4 py-3">
                                 <div>{{ std.namaBapa }}</div>
                                 <div class="font-mono text-xs">{{ std.noTel }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <div v-if="std.alahan && std.alahan !== 'Tiada'" class="text-red-600 text-xs font-bold">Alahan: {{ std.alahan }}</div>
-                                <div v-if="std.penyakit && std.penyakit !== 'Tiada'" class="text-orange-600 text-xs font-bold">Penyakit: {{ std.penyakit }}</div>
-                                <div v-if="(!std.alahan || std.alahan === 'Tiada') && (!std.penyakit || std.penyakit === 'Tiada')" class="text-gray-400 text-xs">Tiada Rekod</div>
+                                <span v-if="activeTab === 'current'" class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">AKTIF</span>
+                                <span v-else class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold">BARU</span>
+                                <div v-if="std.penyakit !== 'Tiada'" class="text-red-600 text-[10px] mt-1 font-bold">! Sakit</div>
                             </td>
-                            <td class="px-4 py-3">
-                                <span :class="badgeColor(std.status)" class="px-2 py-1 rounded text-xs font-bold">{{ std.status }}</span>
+                            <td class="px-4 py-3 space-y-2">
+                                <div class="flex gap-2 mb-2">
+                                    <button @click="openEditModal(std)" class="text-gray-600 hover:text-blue-600 border border-gray-300 px-2 py-1 rounded text-xs flex items-center gap-1">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </button>
+                                    <button v-if="std.status === 'Diterima'" @click="printLetter(std)" class="text-gray-600 hover:text-green-600 border border-gray-300 px-2 py-1 rounded text-xs flex items-center gap-1">
+                                        <i class="fa-solid fa-print"></i> Cetak
+                                    </button>
+                                </div>
+                                
+                                <div v-if="activeTab === 'new'" class="flex gap-1 border-t pt-2">
+                                    <button @click="updateStatus(std, 'Diterima')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] hover:bg-green-700">Lulus</button>
+                                    <button @click="updateStatus(std, 'Simpanan')" class="bg-yellow-500 text-white px-2 py-1 rounded text-[10px] hover:bg-yellow-600">KIV</button>
+                                    <button @click="updateStatus(std, 'Ditolak')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] hover:bg-red-700">Tolak</button>
+                                </div>
                             </td>
-                            <td class="px-4 py-3 flex gap-2">
-                                <button @click="updateStatus(std, 'Diterima')" class="bg-green-100 text-green-700 p-1 rounded hover:bg-green-200" title="Terima"><i class="fa-solid fa-check"></i></button>
-                                <button @click="updateStatus(std, 'Simpanan')" class="bg-yellow-100 text-yellow-700 p-1 rounded hover:bg-yellow-200" title="KIV"><i class="fa-solid fa-clock"></i></button>
-                                <button @click="updateStatus(std, 'Ditolak')" class="bg-red-100 text-red-700 p-1 rounded hover:bg-red-200" title="Tolak"><i class="fa-solid fa-times"></i></button>
-                            </td>
+                        </tr>
+                        <tr v-if="(activeTab === 'new' ? newApplicants : existingStudents).length === 0">
+                            <td colspan="4" class="p-8 text-center text-gray-500">Tiada rekod dijumpai.</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div v-if="activeTab === 'add'" class="bg-white p-6 rounded shadow max-w-3xl mx-auto">
-                <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">Borang Pendaftaran</h3>
-                <form @submit.prevent="submitStudent" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="col-span-2 md:col-span-1 space-y-4">
-                        <div class="bg-blue-50 p-3 rounded border border-blue-100">
-                            <h4 class="font-bold text-blue-700 text-sm mb-3">Maklumat Pelajar</h4>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Nama Penuh</label>
-                                <input v-model="form.nama" placeholder="HURUF BESAR" required class="w-full border p-2 rounded uppercase text-sm">
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">No. MyKid / Sijil Lahir / ID</label>
-                                <input v-model="form.ic" @blur="autoDetectGender" placeholder="Cth: 130525-13-0541 atau SK 57743" required class="w-full border p-2 rounded text-sm">
-                                <p class="text-[10px] text-gray-400 mt-1">Format: 000000-00-0000 atau SK 00000</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Jantina</label>
-                                <select v-model="form.jantina" class="w-full border p-2 rounded text-sm bg-white">
-                                    <option value="" disabled>Sila Pilih</option>
-                                    <option value="Lelaki">Lelaki</option>
-                                    <option value="Perempuan">Perempuan</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Kelas</label>
-                                <select v-model="form.kelas" class="w-full border p-2 rounded text-sm bg-white">
-                                    <option value="" disabled>Sila Pilih Kelas</option>
-                                    <option v-for="cls in generatedClasses" :key="cls" :value="cls">{{ cls }}</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Agama</label>
-                                <select v-model="form.agama" class="w-full border p-2 rounded text-sm bg-white">
-                                    <option>Islam</option>
-                                    <option>Kristian</option>
-                                    <option>Buddha</option>
-                                    <option>Hindu</option>
-                                    <option>Lain-lain</option>
-                                </select>
-                                <input v-if="form.agama === 'Lain-lain'" v-model="form.customAgama" placeholder="Nyatakan Agama..." class="w-full border p-2 rounded text-sm mt-2 bg-yellow-50">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-gray-600">Alamat Penuh</label>
-                                <textarea v-model="form.alamat" rows="2" class="w-full border p-2 rounded text-sm"></textarea>
-                            </div>
-                        </div>
+                <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">Pendaftaran Pelajar</h3>
+                <div class="mb-4 bg-purple-50 p-3 rounded text-sm flex gap-4">
+                    <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="new"> <span>Permohonan Baru</span></label>
+                    <label class="flex items-center gap-2"><input type="radio" v-model="entryType" value="existing"> <span class="font-bold text-green-700">Pelajar Lama (Terus Diterima)</span></label>
+                </div>
+                <form @submit.prevent="submitStudent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input v-model="form.nama" placeholder="NAMA PENUH" required class="border p-2 rounded text-sm uppercase col-span-2">
+                    <input v-model="form.ic" @blur="autoDetectGender('form')" placeholder="No. ID" required class="border p-2 rounded text-sm">
+                    <div class="flex gap-2">
+                        <select v-model="form.kelas" class="w-1/2 border p-2 rounded text-sm"><option value="" disabled>Kelas</option><option v-for="c in generatedClasses" :value="c">{{ c }}</option></select>
+                        <select v-model="form.jantina" class="w-1/2 border p-2 rounded text-sm"><option>Lelaki</option><option>Perempuan</option></select>
                     </div>
-
-                    <div class="col-span-2 md:col-span-1 space-y-4">
-                        <div class="bg-gray-50 p-3 rounded border border-gray-200">
-                            <h4 class="font-bold text-gray-700 text-sm mb-3">Maklumat Waris</h4>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Nama Ibubapa/Penjaga</label>
-                                <input v-model="form.namaBapa" required class="w-full border p-2 rounded text-sm uppercase">
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">No. Kad Pengenalan Ibubapa/Penjaga</label>
-                                <input v-model="form.icBapa" class="w-full border p-2 rounded text-sm">
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-gray-600">No. Telefon (Wajib)</label>
-                                <input v-model="form.noTel" required placeholder="Cth: 011-1234567" class="w-full border p-2 rounded text-sm">
-                            </div>
-                        </div>
-
-                        <div class="bg-red-50 p-3 rounded border border-red-100">
-                            <h4 class="font-bold text-red-700 text-sm mb-3">Rekod Kesihatan</h4>
-                            <div class="mb-3">
-                                <label class="text-xs font-bold text-gray-600">Jenis Penyakit</label>
-                                <div class="flex gap-2 mb-2">
-                                    <select v-model="form.penyakit" class="w-full border p-2 rounded text-sm bg-white">
-                                        <option v-for="d in diseaseList" :key="d" :value="d">{{ d }}</option>
-                                    </select>
-                                </div>
-                                <div class="flex gap-1">
-                                    <input v-model="newDiseaseInput" placeholder="Tambah penyakit baru..." class="border p-1 rounded text-xs flex-grow">
-                                    <button type="button" @click="addToList('disease')" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Tambah</button>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-xs font-bold text-gray-600">Alahan Makanan/Ubat</label>
-                                <div class="flex gap-2 mb-2">
-                                    <select v-model="form.alahan" class="w-full border p-2 rounded text-sm bg-white">
-                                        <option v-for="a in allergyList" :key="a" :value="a">{{ a }}</option>
-                                    </select>
-                                </div>
-                                <div class="flex gap-1">
-                                    <input v-model="newAllergyInput" placeholder="Tambah alahan baru..." class="border p-1 rounded text-xs flex-grow">
-                                    <button type="button" @click="addToList('allergy')" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Tambah</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-3 rounded shadow hover:bg-blue-700 mt-4 flex justify-center items-center gap-2">
-                        <i class="fa-solid fa-save"></i> SIMPAN MAKLUMAT PELAJAR
-                    </button>
+                    <select v-model="form.agama" class="border p-2 rounded text-sm"><option>Islam</option><option>Kristian</option><option>Buddha</option><option>Hindu</option><option>Lain-lain</option></select>
+                    <textarea v-model="form.alamat" placeholder="Alamat" rows="2" class="border p-2 rounded text-sm col-span-2"></textarea>
+                    
+                    <div class="col-span-2 border-t pt-2 mt-2 font-bold text-xs text-gray-500">WARIS</div>
+                    <input v-model="form.namaBapa" placeholder="Nama Bapa" required class="border p-2 rounded text-sm uppercase">
+                    <input v-model="form.noTel" placeholder="No. Tel" required class="border p-2 rounded text-sm">
+                    
+                    <button type="submit" class="col-span-2 bg-blue-600 text-white font-bold py-2 rounded mt-2">Simpan Data</button>
                 </form>
             </div>
         </div>
@@ -235,36 +217,25 @@
         <div v-if="currentView === 'parent_result'" class="flex justify-center">
             <div class="bg-white w-full max-w-2xl p-8 rounded shadow-xl border-t-8 border-blue-900">
                 <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold">Keputusan Permohonan Asrama</h2>
+                    <h2 class="text-2xl font-bold">Status Permohonan</h2>
                     <p class="text-gray-500 mt-1">{{ selectedStudent.nama }}</p>
-                    <p class="text-sm font-mono text-gray-400">{{ selectedStudent.ic }}</p>
                 </div>
                 <div class="flex justify-center mb-8">
-                    <div v-if="selectedStudent.status === 'Diterima'" class="bg-green-100 text-green-800 px-8 py-4 rounded-lg font-bold text-xl border border-green-300 flex items-center gap-3">
-                        <i class="fa-solid fa-check-circle text-2xl"></i> DITERIMA
-                    </div>
-                    <div v-else-if="selectedStudent.status === 'Ditolak'" class="bg-red-100 text-red-800 px-8 py-4 rounded-lg font-bold text-xl border border-red-300">
-                        <i class="fa-solid fa-times-circle mr-2"></i> TIDAK BERJAYA
-                    </div>
-                    <div v-else class="bg-yellow-100 text-yellow-800 px-8 py-4 rounded-lg font-bold text-xl border border-yellow-300">
-                        <i class="fa-solid fa-hourglass-half mr-2"></i> DALAM PROSES
-                    </div>
+                    <div v-if="selectedStudent.status === 'Diterima'" class="bg-green-100 text-green-800 px-6 py-3 rounded font-bold border border-green-300">DITERIMA</div>
+                    <div v-else-if="selectedStudent.status === 'Ditolak'" class="bg-red-100 text-red-800 px-6 py-3 rounded font-bold border border-red-300">TIDAK BERJAYA</div>
+                    <div v-else class="bg-yellow-100 text-yellow-800 px-6 py-3 rounded font-bold border border-yellow-300">DALAM PROSES</div>
                 </div>
-                <div v-if="selectedStudent.status === 'Diterima'" class="space-y-3">
-                    <button @click="printLetter(selectedStudent)" class="w-full bg-blue-700 text-white font-bold py-3 rounded shadow hover:bg-blue-800 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-print"></i> CETAK SURAT TAWARAN
-                    </button>
-                </div>
-                <button @click="currentView = 'login_selection'; parentSearchIC=''" class="mt-6 w-full text-gray-500 py-2 hover:text-gray-800 underline">Kembali</button>
+                <button v-if="selectedStudent.status === 'Diterima'" @click="printLetter(selectedStudent)" class="w-full bg-blue-700 text-white font-bold py-3 rounded mb-4">CETAK SURAT TAWARAN</button>
+                <button @click="currentView = 'login_selection'; parentSearchIC=''" class="w-full text-gray-500 underline">Kembali</button>
             </div>
         </div>
+
     </main>
 </div>
 
 <script>
-    // --- GANTIKAN URL INI DENGAN URL BARU (YANG "ANYONE" ACCESS) ---
-    // Pastikan anda melakukan New Deployment seperti Langkah 1
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxO3UwqN2IC1H8pwxkKsu2udVk8-ef5v5iOF9edOU6CwT6wBHZyW8KXZIxipY3ufjo/exec'; 
+    // --- MASUKKAN URL GOOGLE APPS SCRIPT BARU ANDA DI SINI ---
+    const GAS_URL = 'LETAKKAN_URL_GOOGLE_SCRIPT_ANDA_DISINI'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -273,152 +244,105 @@
         data() {
             return {
                 currentView: 'login_selection',
-                activeTab: 'list',
+                activeTab: 'new', 
                 isLoading: false,
+                showEditModal: false,
+                
                 loginForm: { id: '', pass: '' },
                 currentUser: { role: '', name: '' },
                 parentSearchIC: '',
                 students: [],
                 selectedStudent: null,
-                form: {
-                    nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', customAgama: '',
-                    alamat: '', namaBapa: '', icBapa: '', noTel: '', 
-                    alahan: 'Tiada', penyakit: 'Tiada'
-                },
-                generatedClasses: [],
-                diseaseList: ['Tiada', 'Asma', 'Jantung Berlubang', 'Sawan', 'Eczema'],
-                allergyList: ['Tiada', 'Makanan Laut (Seafood)', 'Kekacang', 'Telur', 'Habuk', 'Ubat-ubatan'],
-                newDiseaseInput: '',
-                newAllergyInput: ''
+                
+                // Form Daftar Baru
+                entryType: 'new',
+                form: { nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' },
+                
+                // Form Edit
+                originalEditIC: '', // Untuk simpan ID asal bagi carian backend
+                editForm: { nama: '', ic: '', kelas: '', jantina: '', agama: '', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: '', penyakit: '' },
+
+                generatedClasses: []
             }
         },
-        mounted() {
-            this.generateClassList();
+        computed: {
+            newApplicants() { return this.students.filter(s => s.status === 'Baru' || s.status === 'Simpanan'); },
+            existingStudents() { return this.students.filter(s => s.status === 'Diterima'); },
+            kivStudents() { return this.students.filter(s => s.status === 'Simpanan'); }
         },
+        mounted() { this.generateClassList(); },
         methods: {
-            goHome() {
-                this.currentView = 'login_selection';
-                this.currentUser = { role: '', name: '' };
-            },
-            
-            // --- FUNGSI LOGOUT YANG HILANG SEBELUM INI ---
-            logout() {
-                this.goHome(); 
-            },
-            
+            goHome() { this.currentView = 'login_selection'; this.currentUser = { role: '', name: '' }; },
+            logout() { this.goHome(); },
             generateClassList() {
                 const years = ['1', '2', '3', '4', '5', '6'];
                 const names = ['Cemerlang', 'Gemilang'];
                 this.generatedClasses = [];
-                years.forEach(y => {
-                    names.forEach(n => {
-                        this.generatedClasses.push(`${y} ${n}`);
-                    });
-                });
+                years.forEach(y => { names.forEach(n => { this.generatedClasses.push(`${y} ${n}`); }); });
             },
-
-            autoDetectGender() {
-                const ic = this.form.ic.replace(/[^0-9]/g, '');
+            autoDetectGender(target) {
+                const source = target === 'form' ? this.form : this.editForm;
+                const ic = source.ic.replace(/[^0-9]/g, '');
                 if (ic.length === 12) {
-                    const lastDigit = parseInt(ic.slice(-1));
-                    this.form.jantina = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
+                    source.jantina = (parseInt(ic.slice(-1)) % 2 !== 0) ? 'Lelaki' : 'Perempuan';
                 }
             },
 
-            addToList(type) {
-                let val = type === 'disease' ? this.newDiseaseInput.trim() : this.newAllergyInput.trim();
-                let list = type === 'disease' ? this.diseaseList : this.allergyList;
-                if (!val) return;
-                const exists = list.some(item => item.toLowerCase() === val.toLowerCase());
-                if (exists) {
-                    alert(`Item "${val}" sudah ada dalam senarai!`);
-                } else {
-                    list.push(val);
-                    if (type === 'disease') {
-                        this.form.penyakit = val;
-                        this.newDiseaseInput = '';
-                    } else {
-                        this.form.alahan = val;
-                        this.newAllergyInput = '';
-                    }
+            // --- EDIT MODAL LOGIC ---
+            openEditModal(std) {
+                this.originalEditIC = std.ic; // Simpan IC asal
+                this.editForm = { ...std }; // Clone data ke form edit
+                this.showEditModal = true;
+            },
+            closeEditModal() { this.showEditModal = false; },
+            
+            async submitEdit() {
+                this.isLoading = true;
+                const params = new URLSearchParams();
+                params.append('action', 'updateStudent');
+                params.append('original_ic', this.originalEditIC);
+                
+                // Append semua field editForm
+                for (const key in this.editForm) {
+                    params.append(key, this.editForm[key]);
+                }
+
+                try {
+                    await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
+                    alert('Maklumat berjaya dikemaskini!');
+                    this.closeEditModal();
+                    setTimeout(() => { this.fetchStudents(); }, 1500); // Refresh data
+                } catch (e) {
+                    alert('Ralat update: ' + e.message);
+                } finally {
+                    this.isLoading = false;
                 }
             },
 
+            // --- API CONNECT ---
             async fetchStudents() {
-                if (GAS_URL.includes('LETAKKAN')) {
-                    alert('Sila masukkan URL Google Script dalam kod HTML dahulu!');
-                    return;
-                }
+                if (GAS_URL.includes('LETAKKAN')) { alert('Sila masukkan URL Google Script!'); return; }
                 this.isLoading = true;
                 try {
                     const res = await fetch(GAS_URL + '?action=read');
                     const json = await res.json();
-                    if (json.result === 'success') {
-                        this.students = json.data;
-                        this.students.forEach(s => {
-                            if (s.penyakit && !this.diseaseList.includes(s.penyakit)) this.diseaseList.push(s.penyakit);
-                            if (s.alahan && !this.allergyList.includes(s.alahan)) this.allergyList.push(s.alahan);
-                        });
-                    }
-                } catch (e) {
-                    console.error(e);
-                    // Ralat ini hanya akan hilang jika anda set Permission GAS kepada "Anyone"
-                    alert('Gagal membaca database. Sila pastikan Permission Google Script adalah "Anyone".');
-                } finally {
-                    this.isLoading = false;
-                }
+                    if (json.result === 'success') { this.students = json.data; }
+                } catch (e) { console.error(e); } finally { this.isLoading = false; }
             },
 
             async submitStudent() {
-                const icRegexA = /^\d{6}-?\d{2}-?\d{4}$/; 
-                const icRegexB = /^SK\s?\d{5}$/i; 
-                
-                if (!icRegexA.test(this.form.ic) && !icRegexB.test(this.form.ic)) {
-                    alert('Format No. ID salah! Sila guna format:\n1. 000000-00-0000 (MyKid)\n2. SK 00000 (Lain-lain)');
-                    return;
-                }
-
-                let finalAgama = this.form.agama;
-                if (this.form.agama === 'Lain-lain') {
-                    if (!this.form.customAgama) {
-                        alert('Sila nyatakan agama jika memilih "Lain-lain"');
-                        return;
-                    }
-                    finalAgama = this.form.customAgama;
-                }
-
                 this.isLoading = true;
                 const params = new URLSearchParams();
                 params.append('action', 'insert');
-                for (const key in this.form) {
-                    if (key !== 'customAgama') { 
-                        params.append(key, key === 'agama' ? finalAgama : this.form[key]);
-                    }
-                }
-                params.append('status', 'Baru');
+                for (const key in this.form) params.append(key, this.form[key]);
+                params.append('status', this.entryType === 'existing' ? 'Diterima' : 'Baru');
 
                 try {
-                    await fetch(GAS_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: params,
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                    });
-                    
-                    alert('Data berjaya dihantar ke sistem!');
-                    this.form = {
-                        nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', customAgama: '',
-                        alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada'
-                    };
-                    setTimeout(() => {
-                        this.fetchStudents(); 
-                        this.activeTab = 'list';
-                    }, 2000);
-                } catch (e) {
-                    alert('Masih gagal: ' + e.message);
-                } finally {
-                    this.isLoading = false;
-                }
+                    await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: params });
+                    alert('Data disimpan!');
+                    this.form = { nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada' };
+                    setTimeout(() => { this.fetchStudents(); this.activeTab = this.entryType === 'existing' ? 'current' : 'new'; }, 2000);
+                } catch (e) { alert('Ralat: ' + e.message); } finally { this.isLoading = false; }
             },
 
             async updateStatus(std, newStatus) {
@@ -426,72 +350,69 @@
                 this.isLoading = true;
                 try {
                     await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`, { mode: 'no-cors' });
-                    std.status = newStatus; // Optimistic update
-                } catch (e) {
-                    console.error(e);
-                } finally {
-                    this.isLoading = false;
-                }
+                    std.status = newStatus;
+                    setTimeout(() => { this.fetchStudents(); }, 1000);
+                } catch (e) { console.error(e); } finally { this.isLoading = false; }
             },
 
             async adminLogin() {
-                if (this.loginForm.id === '01115864913' && this.loginForm.pass === '01115864913') {
-                    this.currentUser = { role: 'admin', name: 'Penyelia Asrama' };
+                if ((this.loginForm.id === '01115864913' && this.loginForm.pass === '01115864913') || this.loginForm.pass === 'Ybb4412') {
+                    this.currentUser = { role: 'admin', name: 'Admin' };
                     this.currentView = 'admin_dashboard';
                     await this.fetchStudents();
-                } else if (this.loginForm.pass === 'Ybb4412') {
-                    this.currentUser = { role: 'admin', name: 'Unit Pengurusan' };
-                    this.currentView = 'admin_dashboard';
-                    await this.fetchStudents();
-                } else {
-                    alert('Login Salah.');
-                }
+                } else { alert('Login Salah.'); }
             },
-
+            
             async parentCheck() {
                 if (!this.students.length) await this.fetchStudents();
                 const input = this.parentSearchIC.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-                const found = this.students.find(s => {
-                    const dbIC = String(s.ic).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-                    return dbIC === input;
-                });
-                if (found) {
-                    this.selectedStudent = found;
-                    this.currentView = 'parent_result';
-                } else {
-                    alert('Rekod tidak dijumpai. Sila pastikan ejaan No KP betul.');
-                }
+                const found = this.students.find(s => String(s.ic).replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === input);
+                if (found) { this.selectedStudent = found; this.currentView = 'parent_result'; } else { alert('Rekod tiada.'); }
             },
 
-            countStatus(st) { return this.students.filter(s => s.status === st).length; },
-            badgeColor(st) {
-                if(st==='Diterima') return 'bg-green-100 text-green-800';
-                if(st==='Ditolak') return 'bg-red-100 text-red-800';
-                return 'bg-yellow-100 text-yellow-800';
-            },
-
+            // --- PRINT FUNCTION ---
             printLetter(std) {
                 const doc = new jsPDF();
+                
+                doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 15, null, null, "center");
+                doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 20, null, null, "center");
+                doc.text("YBB 4412 | Tel: 085-737-005", 105, 25, null, null, "center");
+                doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
+
+                doc.text(`Ruj: SKBN.T.700-10/2/1`, 140, 40);
+                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 140, 45);
+                
+                doc.text(std.namaBapa, 20, 50);
+                doc.text(std.alamat || '', 20, 55);
+
+                let y = 75;
                 doc.setFont("helvetica", "bold");
-                doc.setFontSize(14);
-                doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 20, null, null, "center");
-                doc.setFontSize(10);
+                doc.text("TAWARAN MASUK KE ASRAMA SK BATU NIAH", 20, y);
+                doc.setLineWidth(0.2); doc.line(20, y+2, 120, y+2);
+
+                y += 10;
                 doc.setFont("helvetica", "normal");
-                doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 26, null, null, "center");
-                doc.text("Tel: 085-737-005 | E-mel: skbatuniah@gmail.com", 105, 31, null, null, "center");
-                doc.setLineWidth(0.5); doc.line(20, 35, 190, 35);
-                doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 150, 45);
-                doc.text(`Kepada: ${std.namaBapa}`, 20, 55);
-                doc.text(std.alamat || '', 20, 60);
+                const body = `Sukacita dimaklumkan bahawa anak jagaan Tuan/Puan, ${std.nama} (${std.ic}) dari kelas ${std.kelas} telah ditawarkan menduduki asrama bagi sesi tahun ini.`;
+                doc.text(doc.splitTextToSize(body, 170), 20, y);
+                
+                y += 20;
+                const contact = "Sila hubungi Warden Asrama (011-6488-2868) atau Penyelia Asrama (0111-586-4913) untuk pertanyaan lanjut.";
+                doc.text(doc.splitTextToSize(contact, 170), 20, y);
+
+                y += 20;
+                doc.text("Sekian, terima kasih.", 20, y);
+                
+                y += 15;
                 doc.setFont("helvetica", "bold");
-                doc.text("TAWARAN MASUK KE ASRAMA", 20, 80);
+                doc.text('"BERKHIDMAT UNTUK NEGARA"', 20, y);
+                
+                y += 20;
                 doc.setFont("helvetica", "normal");
-                const text = `Sukacita dimaklumkan bahawa anak tuan/puan, ${std.nama} (${std.ic}), telah berjaya ditawarkan tempat di asrama SK Batu Niah.`;
-                doc.text(doc.splitTextToSize(text, 170), 20, 90);
-                doc.text("Sila bawa surat ini dan keperluan asrama semasa hari pendaftaran.", 20, 110);
-                doc.setFont("helvetica", "bold");
-                doc.text("GURU BESAR", 20, 140);
-                doc.text("SK Batu Niah", 20, 145);
+                doc.text("(GURU BESAR)", 20, y);
+                doc.text("SK Batu Niah", 20, y+5);
+
                 doc.autoPrint();
                 window.open(doc.output('bloburl'), '_blank');
             }
@@ -500,8 +421,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
