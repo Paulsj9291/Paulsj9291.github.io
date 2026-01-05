@@ -12,9 +12,6 @@
     <style>
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Transisi untuk dropdown */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
@@ -137,22 +134,18 @@
             <div v-if="activeTab === 'add'" class="bg-white p-6 rounded shadow max-w-3xl mx-auto">
                 <h3 class="font-bold text-lg mb-4 text-gray-700 border-b pb-2">Borang Pendaftaran</h3>
                 <form @submit.prevent="submitStudent" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
                     <div class="col-span-2 md:col-span-1 space-y-4">
                         <div class="bg-blue-50 p-3 rounded border border-blue-100">
                             <h4 class="font-bold text-blue-700 text-sm mb-3">Maklumat Pelajar</h4>
-                            
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">Nama Penuh</label>
                                 <input v-model="form.nama" placeholder="HURUF BESAR" required class="w-full border p-2 rounded uppercase text-sm">
                             </div>
-
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">No. MyKid / Sijil Lahir / ID</label>
                                 <input v-model="form.ic" @blur="autoDetectGender" placeholder="Cth: 130525-13-0541 atau SK 57743" required class="w-full border p-2 rounded text-sm">
                                 <p class="text-[10px] text-gray-400 mt-1">Format: 000000-00-0000 atau SK 00000</p>
                             </div>
-
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">Jantina</label>
                                 <select v-model="form.jantina" class="w-full border p-2 rounded text-sm bg-white">
@@ -161,7 +154,6 @@
                                     <option value="Perempuan">Perempuan</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">Kelas</label>
                                 <select v-model="form.kelas" class="w-full border p-2 rounded text-sm bg-white">
@@ -169,7 +161,6 @@
                                     <option v-for="cls in generatedClasses" :key="cls" :value="cls">{{ cls }}</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">Agama</label>
                                 <select v-model="form.agama" class="w-full border p-2 rounded text-sm bg-white">
@@ -181,7 +172,6 @@
                                 </select>
                                 <input v-if="form.agama === 'Lain-lain'" v-model="form.customAgama" placeholder="Nyatakan Agama..." class="w-full border p-2 rounded text-sm mt-2 bg-yellow-50">
                             </div>
-
                             <div>
                                 <label class="text-xs font-bold text-gray-600">Alamat Penuh</label>
                                 <textarea v-model="form.alamat" rows="2" class="w-full border p-2 rounded text-sm"></textarea>
@@ -190,7 +180,6 @@
                     </div>
 
                     <div class="col-span-2 md:col-span-1 space-y-4">
-                        
                         <div class="bg-gray-50 p-3 rounded border border-gray-200">
                             <h4 class="font-bold text-gray-700 text-sm mb-3">Maklumat Waris</h4>
                             <div class="mb-3">
@@ -209,7 +198,6 @@
 
                         <div class="bg-red-50 p-3 rounded border border-red-100">
                             <h4 class="font-bold text-red-700 text-sm mb-3">Rekod Kesihatan</h4>
-                            
                             <div class="mb-3">
                                 <label class="text-xs font-bold text-gray-600">Penyakit Kronik</label>
                                 <div class="flex gap-2 mb-2">
@@ -222,7 +210,6 @@
                                     <button type="button" @click="addToList('disease')" class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Tambah</button>
                                 </div>
                             </div>
-
                             <div>
                                 <label class="text-xs font-bold text-gray-600">Alahan Makanan/Ubat</label>
                                 <div class="flex gap-2 mb-2">
@@ -271,13 +258,12 @@
                 <button @click="currentView = 'login_selection'; parentSearchIC=''" class="mt-6 w-full text-gray-500 py-2 hover:text-gray-800 underline">Kembali</button>
             </div>
         </div>
-
     </main>
 </div>
 
 <script>
-    // --- MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI ---
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyude02t-RwPwmhsibTwGUCQJHF3ZZ0QDjg1Z9NzSJg4UVmmsS1INGOi7sBpFnc-3aw/exec'; 
+    // --- GANTIKAN URL INI DENGAN URL BARU (YANG "ANYONE" ACCESS) ---
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbymnvUZXsy55gBVmjyiVExWEn44JTtdVm3fq63sbpgdzBviLeAJyZPm6AXPt3kJOZ6T/exec'; 
 
     const { createApp } = Vue;
     const { jsPDF } = window.jspdf;
@@ -293,15 +279,11 @@
                 parentSearchIC: '',
                 students: [],
                 selectedStudent: null,
-                
-                // DATA BORANG BARU
                 form: {
                     nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', customAgama: '',
                     alamat: '', namaBapa: '', icBapa: '', noTel: '', 
                     alahan: 'Tiada', penyakit: 'Tiada'
                 },
-
-                // LIST DROPDOWN
                 generatedClasses: [],
                 diseaseList: ['Tiada', 'Asma', 'Jantung Berlubang', 'Sawan', 'Eczema'],
                 allergyList: ['Tiada', 'Makanan Laut (Seafood)', 'Kekacang', 'Telur', 'Habuk', 'Ubat-ubatan'],
@@ -317,14 +299,10 @@
                 this.currentView = 'login_selection';
                 this.currentUser = { role: '', name: '' };
             },
-            // --- TAMBAH KOD INI DI BAWAH ---
             logout() {
-                this.goHome();
+                this.goHome(); // Ini membaiki ralat "logout is not defined"
             },
-            // -------------------------------
-
-            // ... kod generateClassList ...
-            // --- LOGIK GENERATE KELAS ---
+            
             generateClassList() {
                 const years = ['1', '2', '3', '4', '5', '6'];
                 const names = ['Cemerlang', 'Gemilang'];
@@ -336,37 +314,23 @@
                 });
             },
 
-            // --- LOGIK AUTO JANTINA DARI IC ---
             autoDetectGender() {
-                const ic = this.form.ic.replace(/[^0-9]/g, ''); // Ambil nombor sahaja
-                
-                [cite_start]// Jika format 12 digit (Standard MyKid/MyKad) [cite: 1]
+                const ic = this.form.ic.replace(/[^0-9]/g, '');
                 if (ic.length === 12) {
                     const lastDigit = parseInt(ic.slice(-1));
-                    [cite_start]// Ganjil = Lelaki, Genap = Perempuan [cite: 1]
-                    if (lastDigit % 2 !== 0) {
-                        this.form.jantina = 'Lelaki';
-                    } else {
-                        this.form.jantina = 'Perempuan';
-                    }
+                    this.form.jantina = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
                 }
             },
 
-            // --- LOGIK TAMBAH LIST DYNAMIC (PENYAKIT/ALAHAN) ---
             addToList(type) {
                 let val = type === 'disease' ? this.newDiseaseInput.trim() : this.newAllergyInput.trim();
                 let list = type === 'disease' ? this.diseaseList : this.allergyList;
-
                 if (!val) return;
-
-                // Cek Duplicate (Case insensitive)
                 const exists = list.some(item => item.toLowerCase() === val.toLowerCase());
-                
                 if (exists) {
                     alert(`Item "${val}" sudah ada dalam senarai!`);
                 } else {
-                    list.push(val); // Tambah ke dropdown
-                    // Auto select item yang baru ditambah
+                    list.push(val);
                     if (type === 'disease') {
                         this.form.penyakit = val;
                         this.newDiseaseInput = '';
@@ -377,7 +341,6 @@
                 }
             },
 
-            // --- API CONNECT ---
             async fetchStudents() {
                 if (GAS_URL.includes('LETAKKAN')) {
                     alert('Sila masukkan URL Google Script dalam kod HTML dahulu!');
@@ -389,24 +352,21 @@
                     const json = await res.json();
                     if (json.result === 'success') {
                         this.students = json.data;
-                        
-                        // --- SMART LIST FEATURE ---
-                        // Scan database pelajar sedia ada untuk update dropdown
                         this.students.forEach(s => {
                             if (s.penyakit && !this.diseaseList.includes(s.penyakit)) this.diseaseList.push(s.penyakit);
                             if (s.alahan && !this.allergyList.includes(s.alahan)) this.allergyList.push(s.alahan);
                         });
                     }
                 } catch (e) {
-                    alert('Gagal menyambung ke database. Sila refresh.');
                     console.error(e);
+                    // Ralat ini hanya akan hilang jika anda set Permission GAS kepada "Anyone"
+                    alert('Gagal membaca database. Sila pastikan Permission Google Script adalah "Anyone".');
                 } finally {
                     this.isLoading = false;
                 }
             },
 
             async submitStudent() {
-                // --- VALIDASI ID ---
                 const icRegexA = /^\d{6}-?\d{2}-?\d{4}$/; 
                 const icRegexB = /^SK\s?\d{5}$/i; 
                 
@@ -415,7 +375,6 @@
                     return;
                 }
 
-                // --- VALIDASI AGAMA ---
                 let finalAgama = this.form.agama;
                 if (this.form.agama === 'Lain-lain') {
                     if (!this.form.customAgama) {
@@ -428,8 +387,6 @@
                 this.isLoading = true;
                 const params = new URLSearchParams();
                 params.append('action', 'insert');
-                
-                // Masukkan data form ke params
                 for (const key in this.form) {
                     if (key !== 'customAgama') { 
                         params.append(key, key === 'agama' ? finalAgama : this.form[key]);
@@ -438,34 +395,24 @@
                 params.append('status', 'Baru');
 
                 try {
-                    // --- PERUBAHAN PENTING DI SINI (NO-CORS) ---
                     await fetch(GAS_URL, { 
                         method: 'POST', 
-                        mode: 'no-cors', // <--- INI AKAN MEMBAIKI RALAT ITU
+                        mode: 'no-cors', 
                         body: params,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        }
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
                     });
                     
-                    // Kerana mode 'no-cors', kita anggap berjaya jika tiada error network
                     alert('Data berjaya dihantar ke sistem!');
-                    
-                    // Reset Form
                     this.form = {
                         nama: '', ic: '', kelas: '', jantina: '', agama: 'Islam', customAgama: '',
                         alamat: '', namaBapa: '', icBapa: '', noTel: '', alahan: 'Tiada', penyakit: 'Tiada'
                     };
-                    
-                    // Tunggu 2 saat sebelum refresh data supaya Google Sheet sempat simpan
                     setTimeout(() => {
                         this.fetchStudents(); 
                         this.activeTab = 'list';
                     }, 2000);
-
                 } catch (e) {
-                    console.error("Error details:", e);
-                    alert('Masih gagal: ' + e.message + '. Sila semak Console pelayar.');
+                    alert('Masih gagal: ' + e.message);
                 } finally {
                     this.isLoading = false;
                 }
@@ -474,10 +421,9 @@
             async updateStatus(std, newStatus) {
                 if(!confirm(`Tukar status ${std.nama} kepada ${newStatus}?`)) return;
                 this.isLoading = true;
-                const oldStatus = std.status;
-                std.status = newStatus;
                 try {
-                    const response = await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`);
+                    await fetch(`${GAS_URL}?action=updateStatus&ic=${std.ic}&status=${newStatus}`, { mode: 'no-cors' });
+                    std.status = newStatus; // Optimistic update
                 } catch (e) {
                     console.error(e);
                 } finally {
@@ -485,7 +431,6 @@
                 }
             },
 
-            // --- LOGIN ---
             async adminLogin() {
                 if (this.loginForm.id === '01115864913' && this.loginForm.pass === '01115864913') {
                     this.currentUser = { role: 'admin', name: 'Penyelia Asrama' };
@@ -500,18 +445,13 @@
                 }
             },
 
-            // --- PARENT CHECK ---
             async parentCheck() {
                 if (!this.students.length) await this.fetchStudents();
-                
-                // Logik carian fleksibel (buang sengkang & whitespace)
                 const input = this.parentSearchIC.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-                
                 const found = this.students.find(s => {
                     const dbIC = String(s.ic).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     return dbIC === input;
                 });
-                
                 if (found) {
                     this.selectedStudent = found;
                     this.currentView = 'parent_result';
@@ -527,11 +467,8 @@
                 return 'bg-yellow-100 text-yellow-800';
             },
 
-            // --- PDF PRINTING (SURAT TAWARAN) ---
             printLetter(std) {
                 const doc = new jsPDF();
-                
-                // HEADER
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(14);
                 doc.text("SEKOLAH KEBANGSAAN BATU NIAH", 105, 20, null, null, "center");
@@ -540,25 +477,18 @@
                 doc.text("D/A PEJABAT PENDIDIKAN DAERAH SUBIS, 98150 BEKENU", 105, 26, null, null, "center");
                 doc.text("Tel: 085-737-005 | E-mel: skbatuniah@gmail.com", 105, 31, null, null, "center");
                 doc.setLineWidth(0.5); doc.line(20, 35, 190, 35);
-
-                // KANDUNGAN
                 doc.text(`Tarikh: ${new Date().toLocaleDateString('ms-MY')}`, 150, 45);
                 doc.text(`Kepada: ${std.namaBapa}`, 20, 55);
                 doc.text(std.alamat || '', 20, 60);
-
                 doc.setFont("helvetica", "bold");
                 doc.text("TAWARAN MASUK KE ASRAMA", 20, 80);
-                
                 doc.setFont("helvetica", "normal");
                 const text = `Sukacita dimaklumkan bahawa anak tuan/puan, ${std.nama} (${std.ic}), telah berjaya ditawarkan tempat di asrama SK Batu Niah.`;
                 doc.text(doc.splitTextToSize(text, 170), 20, 90);
-                
                 doc.text("Sila bawa surat ini dan keperluan asrama semasa hari pendaftaran.", 20, 110);
-                
                 doc.setFont("helvetica", "bold");
                 doc.text("GURU BESAR", 20, 140);
                 doc.text("SK Batu Niah", 20, 145);
-
                 doc.autoPrint();
                 window.open(doc.output('bloburl'), '_blank');
             }
@@ -567,7 +497,3 @@
 </script>
 </body>
 </html>
-
-
-
-
